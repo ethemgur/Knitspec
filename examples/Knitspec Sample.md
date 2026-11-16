@@ -54,7 +54,7 @@ machine:
   type: single-jersey
   diameter: 30
   gauge: 20
-  feeders: 90
+  feeders: 96
   rpm: 22
   needles: 1884
   tracks: 4
@@ -65,8 +65,6 @@ cams:                 # tracks A B C D
   F2: KKKK            # ground
   F3: MMTM            # loop yarn tucks on C
   F4: KKKK
-  F5: TMMM
-  F6: KKKK
 yarns:
   Y1: { count: Ne 30/1, material: CO }
   Y2: { count: Ne 20/1, material: CO }
@@ -75,8 +73,6 @@ feeds:
   F2: { yarn: Y1, loop: 2.7 mm }
   F3: { yarn: Y2, loop: 1.6 mm }
   F4: { yarn: Y1, loop: 2.7 mm }
-  F5: { yarn: Y2, loop: 1.6 mm }
-  F6: { yarn: Y1, loop: 2.7 mm }
 fabric:
   grey: { cpc: 18, wpc: 11 }
 ```
