@@ -41,7 +41,7 @@ Each card also has **Save SVG / PNG / CSV** buttons. Obsidian's **Export to PDF*
 2. Run the command **BRAT: Add a beta plugin for testing** and enter `ethemgur/Knitspec`.
 3. Enable **Knitspec** under Community plugins.
 
-The repository is private, so BRAT needs a GitHub personal access token. Put a fine-grained token with read-only **Contents** access to this repository in BRAT's settings.
+If the repository is private, BRAT also needs a GitHub personal access token. Put a fine-grained token with read-only **Contents** access to this repository in BRAT's settings.
 
 **New version:** bump `version` in `manifest.json` and `package.json`, add it to `versions.json`, push, then run the **Release** workflow in GitHub Actions. BRAT picks up the new release when you run **BRAT: Check for updates**.
 
