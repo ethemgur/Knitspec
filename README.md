@@ -35,14 +35,19 @@ feeds: { F1-F4: { yarn: Y1, loop: 2.9 mm } }
 
 Each card also has **Save SVG / PNG / CSV** buttons. Obsidian's **Export to PDF** prints every view stacked on one sheet.
 
-## Install (work vault)
+## Install with BRAT
 
-```sh
-npm install
-npm run build
-```
+1. In Obsidian, install **BRAT** (Obsidian42 - BRAT) from Community plugins and enable it.
+2. Run the command **BRAT: Add a beta plugin for testing** and enter `ethemgur/Knitspec`.
+3. Enable **Knitspec** under Community plugins.
 
-Copy `main.js`, `manifest.json` and `styles.css` to `<vault>/.obsidian/plugins/knitspec/`, then enable **Knitspec** under Community plugins. BRAT also works once the repository is reachable from the vault machine.
+The repository is private, so BRAT needs a GitHub personal access token. Put a fine-grained token with read-only **Contents** access to this repository in BRAT's settings.
+
+**New version:** bump `version` in `manifest.json` and `package.json`, add it to `versions.json`, push, then run the **Release** workflow in GitHub Actions. BRAT picks up the new release when you run **BRAT: Check for updates**.
+
+## Manual install
+
+Run `npm install && npm run build`, then copy `main.js`, `manifest.json` and `styles.css` to `<vault>/.obsidian/plugins/knitspec/`.
 
 ## Develop
 

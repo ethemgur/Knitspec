@@ -1,0 +1,36 @@
+name: Release
+
+# Builds the plugin and publishes a GitHub release named after the version in
+# manifest.json, with main.js, manifest.json and styles.css attached (what BRAT
+# and Obsidian download). Run it from the Actions tab, or push a version tag.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(node -p "require('./manifest.json').version")
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            gh release upload "$VERSION" main.js manifest.json styles.css --clobber
+          else
+            gh release create "$VERSION" main.js manifest.json styles.css \
+              --target "$GITHUB_SHA" --title "$VERSION" --notes "Knitspec $VERSION"
+          fi
