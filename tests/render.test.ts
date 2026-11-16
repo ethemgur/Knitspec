@@ -5,7 +5,6 @@ import { issueText } from "../src/i18n";
 import { findKnitBlock } from "../src/pipeline";
 import { renderCamChart } from "../src/render/camChart";
 import { renderDiagram } from "../src/render/diagram";
-import { renderSetout } from "../src/render/setout";
 import { buildSpec } from "../src/render/spec";
 import { standalone } from "../src/render/svg";
 import { fixture, run } from "./helpers";
@@ -28,7 +27,7 @@ describe("SVG renderers", () => {
       const { fabric, figures } = run(fixture(`${name}.yaml`));
       for (const lang of ["en", "tr"] as const) {
         wellFormed(renderCamChart(fabric!, lang));
-        wellFormed(renderSetout(fabric!, figures!, lang));
+        wellFormed(renderCamChart(fabric!, lang, figures!.needles?.value));
         wellFormed(renderDiagram(fabric!, lang));
         wellFormed(standalone(renderDiagram(fabric!, lang)));
       }
@@ -41,6 +40,15 @@ describe("SVG renderers", () => {
     for (const f of ["F1", "F2", "F3", "F4"]) expect(svg).toContain(`>${f}<`);
     expect(svg).toContain("Y1+Y2 · 2.9 mm");
     expect(renderCamChart(fabric!, "tr")).toContain("Askı");
+  });
+
+  it("cam chart carries the needle set-out and its repeat count", () => {
+    const { fabric, figures } = run(fixture("rb-0450-rib.yaml"));
+    const svg = renderCamChart(fabric!, "en", figures!.needles!.value);
+    expect(svg).toContain("Needle set-out");
+    expect(svg).toContain("AA-- × 423 repeats");
+    expect(svg).toContain("-AA- × 423 repeats");
+    expect(renderCamChart(fabric!, "tr", 1692)).toContain("× 423 rapor");
   });
 
   it("diagram draws one loop per knit or tuck", () => {

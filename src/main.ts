@@ -18,13 +18,12 @@ import { I18nKey, issueText, Lang, t } from "./i18n";
 import { findKnitBlock, PipelineResult, runPipeline } from "./pipeline";
 import { renderCamChart } from "./render/camChart";
 import { renderDiagram } from "./render/diagram";
-import { renderSetout } from "./render/setout";
 import { buildSpec, compositionText } from "./render/spec";
 import { standalone } from "./render/svg";
 import { DEFAULT_SETTINGS, KnitspecSettings, KnitspecSettingTab, mergeSettings, TabId } from "./settings";
 import { BUILTIN_TEMPLATES, Template, templateBlock } from "./templates";
 
-const TABS: TabId[] = ["diagram", "cams", "setout", "spec"];
+const TABS: TabId[] = ["cams", "diagram", "spec"];
 
 function linkTarget(s: string): string | undefined {
   const m = s.match(/^\[\[([^\]|#]+)(?:[#|][^\]]*)?\]\]$/);
@@ -219,8 +218,7 @@ export default class KnitspecPlugin extends Plugin {
     const panes = card.createDiv({ cls: "knitspec-panes" });
     const svgs: Partial<Record<TabId, string>> = {
       diagram: renderDiagram(fabric, lang),
-      cams: renderCamChart(fabric, lang),
-      setout: renderSetout(fabric, figures, lang),
+      cams: renderCamChart(fabric, lang, figures.needles?.value),
     };
 
     const paneEls = {} as Record<TabId, HTMLElement>;

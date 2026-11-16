@@ -6,7 +6,7 @@ import { Template } from "./templates";
 import { DEFAULT_VALIDATION, ValidationOptions } from "./validate";
 import type KnitspecPlugin from "./main";
 
-export type TabId = "diagram" | "cams" | "setout" | "spec";
+export type TabId = "cams" | "diagram" | "spec";
 
 export interface KnitspecSettings {
   language: Lang;
@@ -44,6 +44,8 @@ export function mergeSettings(saved: Partial<KnitspecSettings> | null): Knitspec
       diameter: { ...DEFAULT_VALIDATION.diameter, ...(s.validation?.diameter ?? {}) },
     },
     userTemplates: s.userTemplates ?? [],
+    // The separate set-out tab was merged into the cam chart in 0.2.0.
+    defaultTab: (["cams", "diagram", "spec"] as string[]).includes(s.defaultTab ?? "") ? s.defaultTab! : "cams",
   };
 }
 
@@ -93,9 +95,8 @@ export class KnitspecSettingTab extends PluginSettingTab {
 
     new Setting(containerEl).setName("Default tab").addDropdown((d) =>
       d
+        .addOption("cams", "Cam chart and set-out")
         .addOption("diagram", "Knitting diagram")
-        .addOption("cams", "Cam chart")
-        .addOption("setout", "Needle set-out")
         .addOption("spec", "Spec card")
         .setValue(s.defaultTab)
         .onChange(async (v) => {
