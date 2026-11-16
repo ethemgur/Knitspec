@@ -39,7 +39,8 @@ export function tuckLoop(x: number, y0: number, yn: number, d: number): string {
 /**
  * Yarn-path diagram: one row per feeder (F1 at the top, same order as the
  * cam chart), needles as dots. Cylinder needles sit below the yarn line and
- * dial needles above it, offset by half a pitch.
+ * dial needles above it: half a pitch over in rib gating, directly opposite
+ * in interlock gating.
  */
 export function renderDiagram(fabric: Fabric, lang: Lang): string {
   const double = isDouble(fabric);
@@ -49,6 +50,8 @@ export function renderDiagram(fabric: Fabric, lang: Lang): string {
   const reps = Math.max(1, Math.min(Math.ceil(12 / unit), Math.floor(32 / unit) || 1));
   const n = unit * reps;
 
+  // Rib gating: dial needles sit between cylinder needles. Interlock gating: directly opposite.
+  const dialShift = fabric.machine.gating === "interlock" ? 0 : PITCH / 2;
   const rowH = double ? 58 : 44;
   const top = 18;
   const width = LEFT + n * PITCH + RIGHT;
@@ -87,7 +90,7 @@ export function renderDiagram(fabric: Fabric, lang: Lang): string {
         needles.push({ x, y: y0 + d * (double ? 16 : 14), d, st });
       };
       add("cyl", LEFT + i * PITCH + PITCH / 2 - 6);
-      if (double) add("dial", LEFT + i * PITCH + PITCH - 6);
+      if (double) add("dial", LEFT + i * PITCH + PITCH / 2 - 6 + dialShift);
     }
 
     const laysYarn = needles.some((nd) => nd.st !== "M");

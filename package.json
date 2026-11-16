@@ -1,6 +1,6 @@
 {
   "name": "knitspec",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Industrial circular-knitting fabric specs from a knit code block in Obsidian",
   "main": "main.js",
   "scripts": {

@@ -18,10 +18,11 @@ function bedStrip(
   label: string,
   info: string,
   lang: Lang,
+  shift = 0,
 ): { svg: string[]; width: number } {
   const reps = repeatsToDraw(setout.length);
   const n = setout.length * reps;
-  const x0 = 80;
+  const x0 = 80 + shift;
   const out: string[] = [];
   out.push(text(8, y + NEEDLE_H / 2, label, { "font-weight": 600, fill: "currentColor" }));
 
@@ -75,7 +76,7 @@ export function renderSetout(fabric: Fabric, figures: Figures, lang: Lang): stri
   const blockH = NEEDLE_H + 50;
   let y = 14;
   if (isDouble(fabric) && fabric.setout.dial) {
-    strips.push(bedStrip(fabric.setout.dial, fabric.tracks.dial, y, t(lang, "bed.dial"), info(fabric.setout.dial.length), lang));
+    strips.push(bedStrip(fabric.setout.dial, fabric.tracks.dial, y, t(lang, "bed.dial"), info(fabric.setout.dial.length), lang, fabric.machine.gating === "interlock" ? 0 : PITCH / 2));
     y += blockH;
   }
   strips.push(bedStrip(fabric.setout.cylinder, fabric.tracks.cyl, y, t(lang, "bed.cyl"), info(fabric.setout.cylinder.length), lang));

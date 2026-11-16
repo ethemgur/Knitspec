@@ -83,7 +83,7 @@ describe("spec card", () => {
       "notAMap", "yaml", "machineMissing", "machineType", "machineRefNotFound", "setoutMissing", "dialMissing",
       "dialOnSingle", "camsMissing", "camLetter", "camLength", "camDialMissing", "camDialOnSingle", "feederKey",
       "feederTwice", "feederGap", "badCount", "unknownYarn", "trackOutOfRange", "neverKnits", "tuckBuildup",
-      "feederRepeat", "setoutRepeat", "longFloat", "noFeed", "gaugeMismatch", "range", "gsmDeviation", "emptySetout",
+      "feederRepeat", "setoutRepeat", "longFloat", "noFeed", "gaugeMismatch", "range", "gsmDeviation", "emptySetout", "needleClash",
     ];
     for (const lang of ["en", "tr"] as const) {
       for (const code of codes) expect(issueText(lang, { level: "error", code }), code).not.toMatch(/^issue\./);

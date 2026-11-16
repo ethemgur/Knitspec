@@ -148,6 +148,21 @@ export function validate(fabric: Fabric, figures?: Figures, opts: ValidationOpti
     }
   }
 
+  // Interlock gating: dial needle i is opposite cylinder needle i; both cannot take yarn.
+  if (isDouble(fabric) && fabric.machine.gating === "interlock" && fabric.setout.dial) {
+    const width = needlePositions(fabric).length / 2;
+    for (const row of fabric.cams) {
+      for (let i = 0; i < width; i++) {
+        const c = stitchAt(fabric, row, "cyl", i);
+        const d = stitchAt(fabric, row, "dial", i);
+        if (c && d && c !== "M" && d !== "M") {
+          issues.push({ level: "error", code: "needleClash", params: { feeder: `F${row.feeder}`, needle: i + 1 } });
+          break;
+        }
+      }
+    }
+  }
+
   // Double jersey: gauges equal.
   if (isDouble(fabric) && m.dialGauge !== undefined && m.gauge !== undefined && m.dialGauge !== m.gauge) {
     issues.push({ level: "error", code: "gaugeMismatch", params: { cyl: m.gauge, dial: m.dialGauge } });

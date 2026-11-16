@@ -101,3 +101,22 @@ describe("built-in templates", () => {
     });
   }
 });
+
+describe("interlock gating", () => {
+  it("accepts long/short needles opposite each other", () => {
+    expect(codes(run(fixture("il-3300-interlock.yaml")).issues)).not.toContain("needleClash");
+  });
+  it("error: opposite needles both knit on one feeder", () => {
+    const { issues } = runYaml(`
+machine: { type: interlock, needles: 2256, feeders: 72 }
+setout: { cylinder: AB, dial: AB }
+cams:
+  F1: { cyl: KM, dial: KM }
+  F2: { cyl: MK, dial: MK }
+`);
+    expect(issues).toContainEqual({ level: "error", code: "needleClash", params: { feeder: "F1", needle: 1 } });
+  });
+  it("rib gating has no clash rule (dial sits between cylinder needles)", () => {
+    expect(codes(run(fixture("rb-0450-rib.yaml")).issues)).not.toContain("needleClash");
+  });
+});

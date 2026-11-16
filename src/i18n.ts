@@ -107,6 +107,8 @@ const en = {
   "issue.range": "{field} {value}{unit} is outside {min}–{max}{unit}. Check the unit.",
   "issue.gsmDeviation": "Entered grey GSM {entered} differs from the calculated {calc} by {pct}%.",
   "issue.emptySetout": "{bed} set-out has no needles.",
+  "issue.needleClash":
+    "{feeder}: in interlock gating, cylinder and dial needle {needle} face each other and cannot both knit or tuck. Use opposite tracks on the dial (e.g. cylinder AB, dial BA).",
   "field.gauge": "Gauge",
   "field.rpm": "RPM",
   "field.diameter": "Diameter",
@@ -214,6 +216,8 @@ const tr: Record<Key, string> = {
   "issue.range": "{field} {value}{unit}, {min}–{max}{unit} aralığının dışında. Birimi kontrol edin.",
   "issue.gsmDeviation": "Girilen ham gramaj {entered}, hesaplanan {calc} değerinden %{pct} farklı.",
   "issue.emptySetout": "{bed} diziliminde iğne yok.",
+  "issue.needleClash":
+    "{feeder}: interlok dizilişinde {needle}. silindir ve kapak iğneleri karşı karşıya; ikisi birden ilmek ya da askı yapamaz. Kapakta ters ray kullanın (ör. silindir AB, kapak BA).",
   "field.gauge": "İncelik",
   "field.rpm": "Devir",
   "field.diameter": "Çap",
