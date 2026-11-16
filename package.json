@@ -1,0 +1,34 @@
+{
+  "name": "knitspec",
+  "version": "0.1.0",
+  "description": "Industrial circular-knitting fabric specs from a knit code block in Obsidian",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc --noEmit && node esbuild.config.mjs production",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ethemgur/Knitspec.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/ethemgur/Knitspec/issues"
+  },
+  "homepage": "https://github.com/ethemgur/Knitspec#readme",
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@xmldom/xmldom": "^0.9.12",
+    "esbuild": "^0.28.2",
+    "obsidian": "^1.14.4",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0",
+    "yaml": "^2.9.1"
+  },
+  "private": true,
+  "type": "module"
+}

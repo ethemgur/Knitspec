@@ -1,0 +1,12 @@
+article: RB-0450
+structure: rib-2x2
+machine: { type: double-jersey, gating: rib, diameter: 30, gauge: 18, feeders: 60, rpm: 22, needles: 1692 }
+setout:
+  cylinder: AA--
+  dial: -AA-
+cams:
+  F1: { cyl: K, dial: K }
+yarns: { Y1: { count: Ne 30/1, material: CO } }
+feeds: { F1: { yarn: Y1, loop: 3.0 mm } }
+fabric:
+  grey: { cpc: 14, wpc: 9 }

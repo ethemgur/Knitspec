@@ -1,0 +1,13 @@
+article: IL-3300
+structure: interlock
+customer: "[[Sporthaus GmbH]]"
+machine: { type: interlock, diameter: 30, gauge: 24, feeders: 72, rpm: 24, needles: 2256 }
+setout:
+  cylinder: AB
+  dial: BA
+cams:
+  F1: { cyl: KM, dial: KM }
+  F2: { cyl: MK, dial: MK }
+yarns: { Y1: { count: Ne 40/1, material: CO } }
+feeds: { F1-F2: { yarn: Y1, loop: 1.7 mm } }
+order_kg: 1500
