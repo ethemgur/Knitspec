@@ -115,3 +115,13 @@ describe("export", () => {
     expect(findKnitBlock("```yaml\na: 1\n```")).toBeUndefined();
   });
 });
+
+describe("diagram orientation", () => {
+  it("draws F1 at the bottom and the last feeder at the top", () => {
+    const { fabric } = run(fixture("sp-1024-single-pique.yaml"));
+    const svg = renderDiagram(fabric!, "en");
+    const y = (f: string) => Number(svg.match(new RegExp(`<text x="8" y="([\\d.]+)"[^>]*>${f}<`))![1]);
+    expect(y("F1")).toBeGreaterThan(y("F2"));
+    expect(y("F2")).toBeGreaterThan(y("F4"));
+  });
+});

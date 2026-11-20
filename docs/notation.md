@@ -170,5 +170,5 @@ The limits are plugin settings.
 ## Open questions for the floor
 
 - How many tracks each Mayer machine has, and whether the masters call them A–D, 1–4, or by butt height.
-- Whether the masters read feeders top-down (F1 first, as in the cam chart and diagram here) or bottom-up.
+- The knitting diagram draws F1 at the bottom (standard notation); the cam chart lists F1 at the top like a set-up sheet. Check that this matches how the masters read them.
 - Whether `cpc` should count visible courses instead of feeder rows. On piqué, one visible course is two feeders.

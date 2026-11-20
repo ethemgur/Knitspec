@@ -37,8 +37,9 @@ export function tuckLoop(x: number, y0: number, yn: number, d: number): string {
 }
 
 /**
- * Yarn-path diagram: one row per feeder (F1 at the top, same order as the
- * cam chart), needles as dots. Cylinder needles sit below the yarn line and
+ * Yarn-path diagram: one row per feeder, F1 at the bottom and the last feeder
+ * at the top, as in standard knitting notation (courses build upward like the
+ * fabric). Needles are dots. Cylinder needles sit below the yarn line and
  * dial needles above it: half a pitch over in rib gating, directly opposite
  * in interlock gating.
  */
@@ -64,7 +65,8 @@ export function renderDiagram(fabric: Fabric, lang: Lang): string {
   );
 
   fabric.cams.forEach((row, r) => {
-    const y0 = top + r * rowH + (double ? rowH / 2 : 12);
+    const level = fabric.cams.length - 1 - r; // F1 drawn lowest
+    const y0 = top + level * rowH + (double ? rowH / 2 : 12);
     body.push(text(8, y0 + 4, `F${row.feeder}`, { "font-weight": 600, fill: "currentColor" }));
     if (double) {
       const small = { fill: "currentColor", opacity: 0.55, "font-size": 9, "text-anchor": "end" };

@@ -1,7 +1,7 @@
 {
   "id": "knitspec",
   "name": "Knitspec",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "minAppVersion": "1.4.0",
   "description": "Turns a knit code block into a circular-knitting fabric spec: knitting diagram, cam chart, needle set-out, validation and production figures.",
   "author": "Ethem",
