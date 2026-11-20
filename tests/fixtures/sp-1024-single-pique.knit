@@ -1,0 +1,16 @@
+# Plan example: single piqué on a 30" E28 single-jersey machine.
+article: SP-1024
+structure: single-pique
+machine: SJ 30" E28 96F 25rpm 85%
+cylinder: AB
+
+      F1 F2 F3 F4
+A     K  K  K  T
+B     K  T  K  K
+yarn  Y1+Y2
+loop  2.9
+
+Y1 = 75 dtex PES
+Y2 = 22 dtex EA draft 3
+
+grey: 165 gsm 172 cm

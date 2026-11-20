@@ -1,6 +1,7 @@
 import { calculate, CalcOptions, DEFAULT_CALC, Figures } from "./calc";
 import { Fabric, Issue } from "./model";
 import { parseFabric, ParseOptions } from "./parser";
+import { parseKnitText } from "./text";
 import { DEFAULT_VALIDATION, validate, ValidationOptions } from "./validate";
 
 export interface PipelineResult {
@@ -14,12 +15,18 @@ export interface PipelineOptions extends ParseOptions {
   validation?: ValidationOptions;
 }
 
-/** Parsed YAML → model → figures → checks. Pure; no Obsidian imports. */
-export function runPipeline(raw: unknown, opts: PipelineOptions = {}): PipelineResult {
-  const parsed = parseFabric(raw, opts);
-  if (!parsed.fabric) return { issues: parsed.issues };
+/** Block text → model → figures → checks. Pure; no Obsidian imports. */
+export function runPipeline(src: string, opts: PipelineOptions = {}): PipelineResult {
+  const text = parseKnitText(src);
+  if (text.issues.some((i) => i.code === "noGrid")) return { issues: text.issues };
+  const parsed = parseFabric(text.raw, opts);
+  if (!parsed.fabric) return { issues: [...text.issues, ...parsed.issues] };
   const figures = calculate(parsed.fabric, opts.calc ?? DEFAULT_CALC);
-  const issues = [...parsed.issues, ...validate(parsed.fabric, figures, opts.validation ?? DEFAULT_VALIDATION)];
+  const issues = [
+    ...text.issues,
+    ...parsed.issues,
+    ...validate(parsed.fabric, figures, opts.validation ?? DEFAULT_VALIDATION),
+  ];
   return { fabric: parsed.fabric, figures, issues };
 }
 

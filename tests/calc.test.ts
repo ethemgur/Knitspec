@@ -1,54 +1,57 @@
 import { describe, expect, it } from "vitest";
-import { fixture, run, runYaml } from "./helpers";
+import { fixture, run } from "./helpers";
 
 describe("needles", () => {
   it("π × D × E: 30\" E28 ≈ 2,639", () => {
-    const { figures } = run(fixture("sp-1024-single-pique.yaml"));
+    const { figures } = run(fixture("sp-1024-single-pique"));
     expect(figures!.needles).toMatchObject({ value: 2639, computed: 2639, fromPlate: false });
   });
 
   it("uses the machine plate figure when given", () => {
-    const { figures } = run(fixture("fl-2210-fleece.yaml"));
+    const { figures } = run(fixture("fl-2210-fleece"));
     expect(figures!.needles).toMatchObject({ value: 1884, fromPlate: true });
   });
 });
 
 describe("production", () => {
   it("plan check: plain single jersey makes about 7.0 kg/h", () => {
-    const { figures } = run(fixture("sj-plain.yaml"));
+    const { figures } = run(fixture("sj-plain"));
     // 25 × 96 × 2639 × 2.9 × 7.5 × 60 × 0.85 / 1e9
     expect(figures!.production!.kgPerHour).toBeCloseTo(7.0255, 3);
   });
 
   it("tuck uses the tuck ratio of the loop length", () => {
-    const { figures } = run(fixture("sp-1024-single-pique.yaml"));
+    const { figures } = run(fixture("sp-1024-single-pique"));
     // Per two needles: F1 5.8, F2 4.35, F3 5.8, F4 4.35 mm of Y1
     const y1 = figures!.feederUse.map((f) => f.uses[0].lengthMm / (2639 / 2));
     expect(y1.map((v) => +v.toFixed(3))).toEqual([5.8, 4.35, 5.8, 4.35]);
   });
 
   it("machine-hours for an order", () => {
-    const { figures } = run(fixture("il-3300-interlock.yaml"));
+    const { figures } = run(fixture("il-3300-interlock"));
     expect(figures!.machineHours).toBeCloseTo(1500 / figures!.production!.kgPerHour, 6);
   });
 
   it("run-in overrides the stitch sum", () => {
-    const { figures } = runYaml(`
-machine: { type: sj, needles: 2640, feeders: 96, rpm: 25, efficiency: 0.85 }
-setout: { cylinder: A }
-cams: { F1: K }
-yarns: { Y1: { count: 75 dtex, material: PES } }
-feeds: { F1: { yarn: Y1, loop: 2.9 mm, runin: 300 mm } }
+    const { figures } = run(`
+machine: SJ 96F 25rpm 85%
+needles: 2640
+cylinder: A
+A      K
+yarn   Y1
+loop   2.9
+runin  300
+Y1 = 75 dtex PES
 `);
     expect(figures!.feederUse[0].fromRunin).toBe(true);
     expect(figures!.feederUse[0].uses[0].lengthMm).toBeCloseTo(3 * 2640);
   });
 
   it("says what is missing instead of guessing", () => {
-    const { figures } = runYaml(`
-machine: { type: sj, diameter: 30, gauge: 28 }
-setout: { cylinder: A }
-cams: { F1: K }
+    const { figures } = run(`
+machine: SJ 30" E28
+cylinder: A
+A  K
 `);
     expect(figures!.production).toBeUndefined();
     expect(figures!.missing).toEqual(expect.arrayContaining(["feeders", "feeds", "rpm"]));
@@ -57,7 +60,7 @@ cams: { F1: K }
 
 describe("composition, GSM and width", () => {
   it("plated elastane with draft 3 gives about 91% PES / 9% EA", () => {
-    const { figures } = run(fixture("sp-1024-single-pique.yaml"));
+    const { figures } = run(fixture("sp-1024-single-pique"));
     const [pes, ea] = figures!.composition;
     expect(pes.material).toBe("PES");
     expect(pes.share).toBeCloseTo(7.5 / (7.5 + 2.2 / 3), 6);
@@ -65,18 +68,18 @@ describe("composition, GSM and width", () => {
   });
 
   it("GSM = CPC × WPC × L × T / 100 for plain jersey", () => {
-    const { figures } = run(fixture("sj-plain.yaml"));
+    const { figures } = run(fixture("sj-plain"));
     expect(figures!.gsm.grey).toBeCloseTo((20 * 14 * 2.9 * 7.5) / 100, 6);
   });
 
   it("open width = needles ÷ WPC, tube is half", () => {
-    const { figures } = run(fixture("sj-plain.yaml"));
+    const { figures } = run(fixture("sj-plain"));
     expect(figures!.width.grey!.open).toBeCloseTo(2639 / 14);
     expect(figures!.width.grey!.tube).toBeCloseTo(2639 / 28);
   });
 
   it("2×2 rib counts only needles in action, both beds", () => {
-    const { figures } = run(fixture("rb-0450-rib.yaml"));
+    const { figures } = run(fixture("rb-0450-rib"));
     expect(figures!.needles).toMatchObject({ value: 1692, activeCyl: 846, activeDial: 846 });
     const tex = 590.5 / 30;
     // Two loops (one per bed) per face wale and course.
@@ -85,7 +88,7 @@ describe("composition, GSM and width", () => {
   });
 
   it("tightness factor √tex ÷ L", () => {
-    const { figures } = run(fixture("sj-plain.yaml"));
+    const { figures } = run(fixture("sj-plain"));
     expect(figures!.tightness[0].tf).toBeCloseTo(Math.sqrt(7.5) / 2.9);
   });
 });

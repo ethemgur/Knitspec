@@ -1,15 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { parse } from "yaml";
 import { BUILTIN_TEMPLATES } from "../src/templates";
 import { maxMissRun, maxTuckRun } from "../src/validate";
-import { codes, fixture, run, runYaml } from "./helpers";
+import { runPipeline } from "../src/pipeline";
+import { codes, fixture, run } from "./helpers";
 
-const base = (cams: string, extra = "") => `
-machine: { type: sj, needles: 2640, feeders: 96 }
-setout: { cylinder: AB }
-cams: ${cams}
-yarns: { Y1: { count: 75 dtex, material: PES } }
-feeds: { F1-F8: { yarn: Y1, loop: 2.9 } }
+/** Single-jersey block on tracks A B; `rows` are the cam rows ("A  K K", "B  K T"). */
+const base = (rows: string, extra = "") => `
+machine: SJ 96F
+needles: 2640
+cylinder: AB
+${rows}
+yarn  Y1
+loop  2.9
+Y1 = 75 dtex PES
 ${extra}`;
 
 describe("run helpers", () => {
@@ -28,65 +31,77 @@ describe("run helpers", () => {
 
 describe("validation rules", () => {
   it("plan example: only the partial-repeat warning (2,639 is odd)", () => {
-    const { issues } = run(fixture("sp-1024-single-pique.yaml"));
+    const { issues } = run(fixture("sp-1024-single-pique"));
     expect(codes(issues)).toEqual(["setoutRepeat"]);
     expect(issues[0].params).toMatchObject({ needles: 2639, width: 2, nearest: 2640 });
   });
 
   it("all five fixtures pass without errors", () => {
     for (const f of ["sj-plain", "sp-1024-single-pique", "fl-2210-fleece", "rb-0450-rib", "il-3300-interlock"]) {
-      const { issues } = run(fixture(`${f}.yaml`));
+      const { issues } = run(fixture(f));
       expect(issues.filter((i) => i.level === "error"), f).toEqual([]);
     }
   });
 
   it("error: a needle that never knits", () => {
-    const { issues } = runYaml(base("{ F1: KT, F2: KM }"));
+    const { issues } = run(base("A  K K\nB  T M"));
     expect(issues).toContainEqual({ level: "error", code: "neverKnits", params: { bed: "cyl", track: "B" } });
   });
 
   it("error: repeat height does not divide the feeders", () => {
-    const { issues } = runYaml(base("{ F1: KK, F2: KK, F3: KK, F4: KK, F5: KK }"));
+    const { issues } = run(base("A  K K K K K\nB  K K K K K"));
     expect(codes(issues)).toContain("feederRepeat");
   });
 
   it("warning: tucks build up above the limit", () => {
-    const { issues } = runYaml(base("{ F1: KT, F2: KT, F3: KT, F4: KK }"));
+    const { issues } = run(base("A  K K K K\nB  T T T K"));
     expect(issues).toContainEqual(expect.objectContaining({ code: "tuckBuildup", params: expect.objectContaining({ track: "B", count: 3 }) }));
   });
 
   it("warning: long floats", () => {
-    const { issues } = runYaml(`
-machine: { type: sj, needles: 2640, feeders: 96 }
-setout: { cylinder: ABCDE }
-cams: { F1: KMMMM, F2: KKKKK }
-yarns: { Y1: { count: 75 dtex, material: PES } }
-feeds: { F1-F2: { yarn: Y1, loop: 2.9 } }
+    const { issues } = run(`
+machine: SJ 96F
+needles: 2640
+cylinder: ABCDE
+A  K K
+B  M K
+C  M K
+D  M K
+E  M K
+yarn Y1
+loop 2.9
+Y1 = 75 dtex PES
 `);
     expect(issues).toContainEqual(expect.objectContaining({ code: "longFloat", params: expect.objectContaining({ feeder: "F1", count: 4 }) }));
   });
 
   it("warning: values outside sane ranges (cm typed for mm)", () => {
-    const { issues } = runYaml(base("{ F1: KK }").replace("loop: 2.9", "loop: 29"));
+    const { issues } = run(base("A  K\nB  K").replace("loop  2.9", "loop  29"));
     expect(issues).toContainEqual(expect.objectContaining({ code: "range", params: expect.objectContaining({ field: "loop" }) }));
   });
 
   it("error: dial and cylinder gauges differ", () => {
-    const { issues } = runYaml(`
-machine: { type: dj, gauge: 18, dial_gauge: 20 }
-setout: { cylinder: A, dial: A }
-cams: { F1: { cyl: K, dial: K } }
-`);
+    // The block has one gauge; a linked machine note can still carry a different dial gauge.
+    const { issues } = runPipeline(
+      `
+machine: [[M-DJ]]
+cylinder: A
+dial: A'
+A'  K
+A   K
+`,
+      { resolveMachine: () => ({ type: "double-jersey", gauge: 18, dial_gauge: 20 }) },
+    );
     expect(codes(issues)).toContain("gaugeMismatch");
   });
 
   it("warning: entered GSM far from calculated", () => {
-    const { issues } = run(fixture("sj-plain.yaml")); // entered 120, calculated ≈ 61
+    const { issues } = run(fixture("sj-plain")); // entered 120, calculated ≈ 61
     expect(codes(issues)).toContain("gsmDeviation");
   });
 
   it("warning: knitting feeder without a feed", () => {
-    const { issues } = runYaml(base("{ F1: KK, F2: KK }").replace("F1-F8", "F1"));
+    const { issues } = run(base("A  K K\nB  K K").replace("yarn  Y1", "yarn  Y1 -"));
     expect(issues).toContainEqual(expect.objectContaining({ code: "noFeed", params: { feeder: "F2" } }));
   });
 });
@@ -94,7 +109,7 @@ cams: { F1: { cyl: K, dial: K } }
 describe("built-in templates", () => {
   for (const tpl of BUILTIN_TEMPLATES) {
     it(`${tpl.name} parses and has no errors`, () => {
-      const { fabric, issues } = run(parse(tpl.body));
+      const { fabric, issues } = run(tpl.body);
       expect(fabric).toBeDefined();
       expect(issues.filter((i) => i.level === "error")).toEqual([]);
       expect(fabric!.status).toBe("template-unverified");
@@ -104,19 +119,22 @@ describe("built-in templates", () => {
 
 describe("interlock gating", () => {
   it("accepts long/short needles opposite each other", () => {
-    expect(codes(run(fixture("il-3300-interlock.yaml")).issues)).not.toContain("needleClash");
+    expect(codes(run(fixture("il-3300-interlock")).issues)).not.toContain("needleClash");
   });
   it("error: opposite needles both knit on one feeder", () => {
-    const { issues } = runYaml(`
-machine: { type: interlock, needles: 2256, feeders: 72 }
-setout: { cylinder: AB, dial: AB }
-cams:
-  F1: { cyl: KM, dial: KM }
-  F2: { cyl: MK, dial: MK }
+    const { issues } = run(`
+machine: interlock 72F
+needles: 2256
+cylinder: AB
+dial: A'B'
+A'  K M
+B'  M K
+A   K M
+B   M K
 `);
     expect(issues).toContainEqual({ level: "error", code: "needleClash", params: { feeder: "F1", needle: 1 } });
   });
   it("rib gating has no clash rule (dial sits between cylinder needles)", () => {
-    expect(codes(run(fixture("rb-0450-rib.yaml")).issues)).not.toContain("needleClash");
+    expect(codes(run(fixture("rb-0450-rib")).issues)).not.toContain("needleClash");
   });
 });

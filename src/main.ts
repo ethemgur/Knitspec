@@ -7,7 +7,6 @@ import {
   Modal,
   normalizePath,
   Notice,
-  parseYaml,
   Plugin,
   Setting,
   SuggestModal,
@@ -113,13 +112,7 @@ export default class KnitspecPlugin extends Plugin {
 
   /** Parse and compute a block, resolving machine links against the note. */
   run(source: string, sourcePath: string): PipelineResult {
-    let raw: unknown;
-    try {
-      raw = parseYaml(source);
-    } catch (e) {
-      return { issues: [{ level: "error", code: "yaml", params: { message: (e as Error).message.split("\n")[0] } }] };
-    }
-    return runPipeline(raw, {
+    return runPipeline(source, {
       calc: this.settings.calc,
       validation: this.settings.validation,
       resolveMachine: (ref) => {

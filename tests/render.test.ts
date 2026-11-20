@@ -26,7 +26,7 @@ function wellFormed(svg: string): void {
 describe("SVG renderers", () => {
   for (const name of FIXTURES) {
     it(`${name}: all views are well-formed SVG in both languages`, () => {
-      const { fabric, figures } = run(fixture(`${name}.yaml`));
+      const { fabric, figures } = run(fixture(name));
       for (const lang of ["en", "tr"] as const) {
         wellFormed(renderCamChart(fabric!, lang));
         wellFormed(renderCamChart(fabric!, lang, figures!.needles?.value));
@@ -37,7 +37,7 @@ describe("SVG renderers", () => {
   }
 
   it("cam chart shows one row per feeder with its feed", () => {
-    const { fabric } = run(fixture("sp-1024-single-pique.yaml"));
+    const { fabric } = run(fixture("sp-1024-single-pique"));
     const svg = renderCamChart(fabric!, "en");
     for (const f of ["F1", "F2", "F3", "F4"]) expect(svg).toContain(`>${f}<`);
     expect(svg).toContain(">Y1+Y2<");
@@ -46,7 +46,7 @@ describe("SVG renderers", () => {
   });
 
   it("cam chart carries the needle set-out and its repeat count", () => {
-    const { fabric, figures } = run(fixture("rb-0450-rib.yaml"));
+    const { fabric, figures } = run(fixture("rb-0450-rib"));
     const svg = renderCamChart(fabric!, "en", figures!.needles!.value);
     expect(svg).toContain("Needle set-out");
     expect(svg).toContain("AA-- × 423 repeats");
@@ -55,7 +55,7 @@ describe("SVG renderers", () => {
   });
 
   it("diagram draws one loop per knit or tuck", () => {
-    const { fabric } = run(fixture("sp-1024-single-pique.yaml"));
+    const { fabric } = run(fixture("sp-1024-single-pique"));
     const svg = renderDiagram(fabric!, "en");
     // 12 needles drawn (6 repeats of AB) × 4 feeders = 48 loops, 6 of them tucks per tuck row.
     const knit = (svg.match(/stroke="#2e8b57" stroke-width="1.6"/g) ?? []).length;
@@ -66,14 +66,17 @@ describe("SVG renderers", () => {
   });
 
   it("escapes text", () => {
-    const { fabric } = run({ ...(fixture("sj-plain.yaml") as object), yarns: { "<Y&1>": { count: "75 dtex", material: "PES" } }, feeds: { F1: { yarn: "<Y&1>", loop: 2.9 } } });
+    const { fabric } = run(`article: <b>&"x"
+A  K
+yarn Y1
+Y1 = 75 dtex <PES&>`);
     wellFormed(renderCamChart(fabric!, "en"));
   });
 });
 
 describe("spec card", () => {
   it("shows figures with their inputs", () => {
-    const { fabric, figures, issues } = run(fixture("sp-1024-single-pique.yaml"));
+    const { fabric, figures, issues } = run(fixture("sp-1024-single-pique"));
     const spec = buildSpec(fabric!, figures!, issues, "en");
     const rows = Object.fromEntries(spec.sections.flatMap((s) => s.rows.map((r) => [r.label, r])));
     expect(rows["Needles per bed"]).toMatchObject({ value: "2,639", note: "π × 30 × 28" });
@@ -83,7 +86,7 @@ describe("spec card", () => {
   });
 
   it("uses Turkish labels and decimal comma", () => {
-    const { fabric, figures, issues } = run(fixture("sj-plain.yaml"));
+    const { fabric, figures, issues } = run(fixture("sj-plain"));
     const spec = buildSpec(fabric!, figures!, issues, "tr");
     const rows = spec.sections.flatMap((s) => s.rows);
     expect(rows.find((r) => r.label === "Üretim")!.value).toBe("7 kg/h");
@@ -92,7 +95,7 @@ describe("spec card", () => {
 
   it("every issue code has text in both languages", () => {
     const codes = [
-      "notAMap", "yaml", "machineMissing", "machineType", "machineRefNotFound", "setoutMissing", "dialMissing",
+      "noGrid", "gridWidth", "feedRowWidth", "camRowMissing", "trackNotInSetout", "setoutAssumed", "unknownLine", "machineToken", "machineMissing", "machineType", "machineRefNotFound", "setoutMissing", "dialMissing",
       "dialOnSingle", "camsMissing", "camLetter", "camLength", "camDialMissing", "camDialOnSingle", "feederKey",
       "feederTwice", "feederGap", "badCount", "unknownYarn", "trackOutOfRange", "neverKnits", "tuckBuildup",
       "feederRepeat", "setoutRepeat", "longFloat", "noFeed", "gaugeMismatch", "range", "gsmDeviation", "emptySetout", "needleClash",
@@ -105,7 +108,7 @@ describe("spec card", () => {
 
 describe("export", () => {
   it("CSV with semicolons and decimal comma", () => {
-    const { fabric, figures } = run(fixture("sp-1024-single-pique.yaml"));
+    const { fabric, figures } = run(fixture("sp-1024-single-pique"));
     const csv = toCsv(fabric!, figures!, "en", ";");
     const lines = csv.split("\n");
     expect(lines[0]).toBe("Feeder;Cylinder A;Cylinder B;yarn;plate;loop_mm");
@@ -122,7 +125,7 @@ describe("export", () => {
 
 describe("cam chart layout", () => {
   it("rows are tracks (dial with apostrophe, above cylinder), columns are feeders", () => {
-    const { fabric } = run(fixture("il-3300-interlock.yaml"));
+    const { fabric } = run(fixture("il-3300-interlock"));
     const svg = renderCamChart(fabric!, "tr");
     const y = (label: string) => Number(svg.match(new RegExp(`y="([\\d.]+)"[^>]*>${label}<`))![1]);
     expect(y("Kapak")).toBeLessThan(y("Silindir"));
@@ -134,7 +137,7 @@ describe("cam chart layout", () => {
 
 describe("diagram orientation", () => {
   it("draws F1 at the bottom and the last feeder at the top", () => {
-    const { fabric } = run(fixture("sp-1024-single-pique.yaml"));
+    const { fabric } = run(fixture("sp-1024-single-pique"));
     const svg = renderDiagram(fabric!, "en");
     const y = (f: string) => Number(svg.match(new RegExp(`<text x="8" y="([\\d.]+)"[^>]*>${f}<`))![1]);
     expect(y("F1")).toBeGreaterThan(y("F2"));
@@ -152,7 +155,7 @@ describe("textbook notation options", () => {
   });
 
   it("cam symbols replace letters when chosen", () => {
-    const { fabric } = run(fixture("sp-1024-single-pique.yaml"));
+    const { fabric } = run(fixture("sp-1024-single-pique"));
     const svg = renderCamChart(fabric!, "en", undefined, { camStyle: "symbols", trackNames: "letters", trackOrder: "first-top" });
     expect(svg).toContain("<polyline");
     expect(svg).not.toMatch(/font-weight="600"[^>]*>K</);
@@ -161,7 +164,7 @@ describe("textbook notation options", () => {
   it("tracks can be numbered and ordered first-at-bottom", () => {
     expect(trackLabel("cyl", "C", { camStyle: "letters", trackNames: "numbers", trackOrder: "first-top" })).toBe("3");
     expect(trackLabel("dial", "B", { camStyle: "letters", trackNames: "numbers", trackOrder: "first-top" })).toBe("2′");
-    const { fabric } = run(fixture("fl-2210-fleece.yaml"));
+    const { fabric } = run(fixture("fl-2210-fleece"));
     const svg = renderCamChart(fabric!, "en", 1884, { camStyle: "letters", trackNames: "numbers", trackOrder: "first-bottom" });
     const y = (l: string) => Number(svg.match(new RegExp(`y="([\\d.]+)" text-anchor="end"[^>]*>${l}<`))![1]);
     expect(y("1")).toBeGreaterThan(y("4"));

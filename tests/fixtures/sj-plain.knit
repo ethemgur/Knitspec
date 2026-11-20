@@ -1,0 +1,13 @@
+# Plan's production check: plain single jersey, 30" E28, 96 feeders, 25 rpm.
+article: SJ-0001
+structure: single-jersey
+machine: SJ 30" E28 96F 25rpm 85%
+cylinder: A
+
+      F1
+A     K
+yarn  Y1
+loop  2.9
+
+Y1 = 75 dtex PES
+grey: 120 gsm 20 cpc 14 wpc

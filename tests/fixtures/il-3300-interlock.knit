@@ -1,0 +1,18 @@
+article: IL-3300
+structure: interlock
+customer: [[Sporthaus GmbH]]
+machine: interlock 30" E24 72F 24rpm
+needles: 2256
+cylinder: AB
+dial: B'A'
+
+      F1  F2
+A'    K   M
+B'    M   K
+A     K   M
+B     M   K
+yarn  Y1
+loop  1.7
+
+Y1 = 40/1 Penye
+order: 1500 kg

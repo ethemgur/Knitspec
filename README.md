@@ -8,17 +8,21 @@ An Obsidian plugin that turns a `knit` code block into an industrial fabric spec
 
 Labels switch between Turkish and English. Everything runs offline inside the vault, with no network calls and no desktop-only APIs.
 
-See [`docs/notation.md`](docs/notation.md) for the block syntax. [`examples/`](examples) has a sample machine note and article note.
+The block is written like a çelik dizilimi sheet: tracks as rows, feeders as columns. See [`docs/notation.md`](docs/notation.md) for the full syntax. [`examples/`](examples) has a sample machine note and article note.
 
 ````markdown
 ```knit
 article: SP-1024
-structure: single-pique
-machine: { type: single-jersey, diameter: 30, gauge: 28, feeders: 96, rpm: 25 }
-setout: { cylinder: AB }
-cams: { F1: KK, F2: KT, F3: KK, F4: TK }
-yarns: { Y1: { count: 75 dtex, material: PES } }
-feeds: { F1-F4: { yarn: Y1, loop: 2.9 mm } }
+machine: SJ 30" E28 96F 25rpm
+cylinder: AB
+
+      F1 F2 F3 F4
+A     K  K  K  T
+B     K  T  K  K
+yarn  Y1
+loop  2.9
+
+Y1 = 75 dtex PES
 ```
 ````
 
@@ -59,9 +63,9 @@ npm run typecheck
 The code is split so that everything except `src/main.ts` and `src/settings.ts` is pure TypeScript with no Obsidian imports, which lets it be tested directly:
 
 ```
-knit block (YAML) ─ parseYaml ─▶ parser.ts ─▶ Fabric model ─┬─▶ calc.ts ──────▶ Figures
-                                                             ├─▶ validate.ts ─▶ Issues
-                                                             └─▶ render/*.ts ─▶ SVG + spec card ─▶ main.ts (card, exports)
+knit block text ─▶ text.ts ─▶ parser.ts ─▶ Fabric model ─┬─▶ calc.ts ──────▶ Figures
+                                                        ├─▶ validate.ts ─▶ Issues
+                                                        └─▶ render/*.ts ─▶ SVG + spec card ─▶ main.ts (card, exports)
 ```
 
 ## Status against the plan

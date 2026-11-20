@@ -1,0 +1,16 @@
+article: FL-2210
+structure: two-thread-fleece
+machine: SJ 30" E20 96F 22rpm 4 tracks
+needles: 1884
+cylinder: ABCD
+
+      F1  F2  F3  F4
+A     T   K   M   K
+B     M   K   M   K
+C     M   K   T   K
+D     M   K   M   K
+yarn  Y2  Y1  Y2  Y1
+loop  1.6 2.7 1.6 2.7
+
+Y1 = 30/1 Penye
+Y2 = 20/1 Penye

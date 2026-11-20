@@ -11,26 +11,19 @@ The plainest structure: one track, every needle knits at every feeder.
 
 ```knit
 article: SUP-3001
-structure: süprem
 status: template-unverified
-machine:
-  type: single-jersey
-  diameter: 30
-  gauge: 28
-  feeders: 96
-  rpm: 28
-  efficiency: 0.85
-  needles: 2640
-setout:
-  cylinder: A
-cams:
-  F1: K
-yarns:
-  Y1: { count: Ne 30/1, material: CO }
-feeds:
-  F1: { yarn: Y1, loop: 2.75 mm }
-fabric:
-  finished: { gsm: 150, width: 180 cm }
+structure: süprem
+machine: SJ 30" E28 96F 28rpm 85%
+needles: 2640
+cylinder: A
+
+      F1
+A     K
+yarn  Y1
+loop  2.75
+
+Y1 = Ne 30/1 CO
+finished: 150 gsm 180 cm
 ```
 
 ## 2. İki iplik (two-thread fleece)
@@ -39,34 +32,23 @@ Ground yarn knits on every needle. The loop (fleece) yarn tucks on one needle in
 
 ```knit
 article: IKI-2201
-structure: iki-iplik
 status: template-unverified
-machine:
-  type: single-jersey
-  diameter: 30
-  gauge: 20
-  feeders: 96
-  rpm: 22
-  efficiency: 0.85
-  needles: 1884
-  tracks: 4
-setout:
-  cylinder: ABCD
-cams:                 # tracks A B C D
-  F1: TMMM            # loop yarn tucks on A
-  F2: KKKK            # ground
-  F3: MMTM            # loop yarn tucks on C
-  F4: KKKK            # ground
-yarns:
-  Y1: { count: Ne 30/1, material: CO }    # ground
-  Y2: { count: Ne 20/1, material: CO }    # loop
-feeds:
-  F1: { yarn: Y2, loop: 1.6 mm }
-  F2: { yarn: Y1, loop: 2.7 mm }
-  F3: { yarn: Y2, loop: 1.6 mm }
-  F4: { yarn: Y1, loop: 2.7 mm }
-fabric:
-  finished: { gsm: 240, width: 175 cm }
+structure: iki-iplik
+machine: SJ 30" E20 96F 22rpm 85% 4 tracks
+needles: 1884
+cylinder: ABCD
+
+      F1  F2  F3  F4
+A     T   K   M   K
+B     M   K   M   K
+C     M   K   T   K
+D     M   K   M   K
+yarn  Y2  Y1  Y2  Y1
+loop  1.6 2.7 1.6 2.7
+
+Y1 = Ne 30/1 CO
+Y2 = Ne 20/1 CO
+finished: 240 gsm 175 cm
 ```
 
 ## 3. Üç iplik (three-thread fleece)
@@ -75,39 +57,24 @@ Three yarns: a thick fleece yarn tucked one in four, a fine binder that holds it
 
 ```knit
 article: UC-3301
-structure: üç-iplik
 status: template-unverified
-machine:
-  type: single-jersey
-  diameter: 30
-  gauge: 20
-  feeders: 96
-  rpm: 20
-  efficiency: 0.85
-  needles: 1884
-  tracks: 4
-setout:
-  cylinder: ABCD
-cams:                 # tracks A B C D
-  F1: TMMM            # fleece yarn tucks on A
-  F2: KKKK            # binder
-  F3: KKKK            # face
-  F4: MMTM            # fleece yarn tucks on C
-  F5: KKKK            # binder
-  F6: KKKK            # face
-yarns:
-  Y1: { count: Ne 30/1, material: CO }      # face
-  Y2: { count: 75/36 dtex, material: PES }  # binder
-  Y3: { count: Ne 10/1, material: CO }      # fleece
-feeds:
-  F1: { yarn: Y3, loop: 1.6 mm }
-  F2: { yarn: Y2, loop: 2.4 mm }
-  F3: { yarn: Y1, loop: 2.8 mm }
-  F4: { yarn: Y3, loop: 1.6 mm }
-  F5: { yarn: Y2, loop: 2.4 mm }
-  F6: { yarn: Y1, loop: 2.8 mm }
-fabric:
-  finished: { gsm: 320, width: 175 cm }
+structure: üç-iplik
+machine: SJ 30" E20 96F 20rpm 85% 4 tracks
+needles: 1884
+cylinder: ABCD
+
+      F1  F2  F3  F4  F5  F6
+A     T   K   K   M   K   K
+B     M   K   K   M   K   K
+C     M   K   K   T   K   K
+D     M   K   K   M   K   K
+yarn  Y3  Y2  Y1  Y3  Y2  Y1
+loop  1.6 2.4 2.8 1.6 2.4 2.8
+
+Y1 = Ne 30/1 CO
+Y2 = 75/36 dtex PES
+Y3 = Ne 10/1 CO
+finished: 320 gsm 175 cm
 ```
 
 ## 4. Ribana (1×1 rib)
@@ -116,27 +83,20 @@ Double jersey in rib gating: each dial needle sits between two cylinder needles,
 
 ```knit
 article: RIB-1801
-structure: ribana-1x1
 status: template-unverified
-machine:
-  type: double-jersey
-  gating: rib
-  diameter: 30
-  gauge: 18
-  feeders: 60
-  rpm: 22
-  efficiency: 0.85
-setout:
-  cylinder: A
-  dial: A
-cams:
-  F1: { cyl: K, dial: K }
-yarns:
-  Y1: { count: Ne 30/1, material: CO }
-feeds:
-  F1: { yarn: Y1, loop: 3.0 mm }
-fabric:
-  finished: { gsm: 220, width: 120 cm }   # tube fabrics are often quoted as flat width
+structure: ribana-1x1
+machine: rib 30" E18 60F 22rpm 85%
+cylinder: A
+dial: A'
+
+      F1
+A'    K
+A     K
+yarn  Y1
+loop  3.0
+
+Y1 = Ne 30/1 CO
+finished: 220 gsm 120 cm
 ```
 
 ## 5. İnterlok (interlock)
@@ -145,28 +105,23 @@ Long (A) and short (B) needles, with dial and cylinder needles facing each other
 
 ```knit
 article: INT-2401
-structure: interlok
 status: template-unverified
-machine:
-  type: interlock
-  diameter: 30
-  gauge: 24
-  feeders: 72
-  rpm: 24
-  efficiency: 0.85
-  needles: 2256
-setout:
-  cylinder: AB
-  dial: BA            # long dial needle faces short cylinder needle
-cams:                 # tracks A B
-  F1: { cyl: KM, dial: KM }
-  F2: { cyl: MK, dial: MK }
-yarns:
-  Y1: { count: Ne 40/1, material: CO }
-feeds:
-  F1-F2: { yarn: Y1, loop: 1.7 mm }
-fabric:
-  finished: { gsm: 200, width: 180 cm }
+structure: interlok
+machine: interlock 30" E24 72F 24rpm 85%
+needles: 2256
+cylinder: AB
+dial: B'A'
+
+      F1  F2
+A'    K   M
+B'    M   K
+A     K   M
+B     M   K
+yarn  Y1
+loop  1.7
+
+Y1 = Ne 40/1 CO
+finished: 200 gsm 180 cm
 ```
 
 ## 6. Double face (on an interlock machine)
@@ -175,33 +130,22 @@ Cotton on the face (cylinder), polyester on the back (dial). The face yarn tucks
 
 ```knit
 article: DF-2402
-structure: double-face
 status: template-unverified
-machine:
-  type: double-jersey
-  gating: rib
-  diameter: 30
-  gauge: 24
-  feeders: 72
-  rpm: 20
-  efficiency: 0.85
-  needles: 2256
-setout:
-  cylinder: AB
-  dial: AB
-cams:                 # tracks A B
-  F1: { cyl: KK, dial: TM }   # face yarn knits cylinder, ties on dial A
-  F2: { cyl: MM, dial: KK }   # back yarn knits dial
-  F3: { cyl: KK, dial: MT }   # face yarn knits cylinder, ties on dial B
-  F4: { cyl: MM, dial: KK }   # back yarn knits dial
-yarns:
-  Y1: { count: Ne 30/1, material: CO }       # face
-  Y2: { count: 75/72 dtex, material: PES }   # back
-feeds:
-  F1: { yarn: Y1, loop: 2.2 mm }
-  F2: { yarn: Y2, loop: 2.0 mm }
-  F3: { yarn: Y1, loop: 2.2 mm }
-  F4: { yarn: Y2, loop: 2.0 mm }
-fabric:
-  finished: { gsm: 260, width: 170 cm }
+structure: double-face
+machine: rib 30" E24 72F 20rpm 85%
+needles: 2256
+cylinder: AB
+dial: A'B'
+
+      F1  F2  F3  F4
+A'    T   K   M   K
+B'    M   K   T   K
+A     K   M   K   M
+B     K   M   K   M
+yarn  Y1  Y2  Y1  Y2
+loop  2.2 2.0 2.2 2.0
+
+Y1 = Ne 30/1 CO
+Y2 = 75/72 dtex PES
+finished: 260 gsm 170 cm
 ```

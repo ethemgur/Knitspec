@@ -9,266 +9,221 @@ export interface Template {
   body: string;
 }
 
-const sjMachine = `machine:
-  type: single-jersey
-  diameter: 30        # inch
-  gauge: 28           # E
-  feeders: 96
-  rpm: 25
-  efficiency: 0.85`;
-
-const djMachine = (gating: string) => `machine:
-  type: double-jersey
-  gating: ${gating}
-  diameter: 30
-  gauge: 18
-  feeders: 60
-  rpm: 22
-  efficiency: 0.85`;
+const SJ = 'machine: SJ 30" E28 96F 25rpm 85%';
 
 export const BUILTIN_TEMPLATES: Template[] = [
   {
     id: "single-jersey",
-    name: "Single jersey (plain)",
+    name: "Süprem (single jersey)",
     body: `article: NEW
-structure: single-jersey
+structure: süprem
 status: template-unverified
-${sjMachine}
-setout:
-  cylinder: A
-cams:
-  F1: K
-yarns:
-  Y1: { count: 75 dtex, material: PES }
-feeds:
-  F1: { yarn: Y1, loop: 2.9 mm }
-fabric:
-  grey: {}            # gsm, width (cm), cpc, wpc`,
+${SJ}
+cylinder: A
+
+      F1
+A     K
+yarn  Y1
+loop  2.75
+
+Y1 = 30/1 Penye
+grey:          # e.g. 150 gsm 180 cm 20 cpc 14 wpc`,
   },
   {
     id: "single-jersey-elastane",
-    name: "Single jersey plated with elastane",
+    name: "Likralı süprem (single jersey plated with elastane)",
     body: `article: NEW
-structure: single-jersey-plated
+structure: likralı süprem
 status: template-unverified
-${sjMachine}
-setout:
-  cylinder: A
-cams:
-  F1: K
-yarns:
-  Y1: { count: 75 dtex, material: PES }
-  Y2: { count: 22 dtex, material: EA }
-feeds:
-  F1: { yarn: Y1, loop: 2.9 mm, plate: Y2, draft: 3 }
-fabric:
-  grey: {}            # gsm, width (cm), cpc, wpc`,
+${SJ}
+cylinder: A
+
+      F1
+A     K
+yarn  Y1+Y2     # Y2 plated with Y1
+loop  2.9
+
+Y1 = 75 dtex PES
+Y2 = 22 dtex likra draft 3
+grey:`,
   },
   {
     id: "single-pique",
-    name: "Single piqué (Lacoste)",
+    name: "Lakost (single piqué)",
     body: `article: NEW
-structure: single-pique
+structure: lakost
 status: template-unverified
-${sjMachine}
-setout:
-  cylinder: AB
-cams:                 # one letter per track: A B
-  F1: KK
-  F2: KT
-  F3: KK
-  F4: TK
-yarns:
-  Y1: { count: 75 dtex, material: PES }
-feeds:
-  F1-F4: { yarn: Y1, loop: 2.9 mm }
-fabric:
-  grey: {}            # gsm, width (cm), cpc, wpc`,
+${SJ}
+cylinder: AB
+
+      F1 F2 F3 F4
+A     K  K  K  T
+B     K  T  K  K
+yarn  Y1
+loop  2.9
+
+Y1 = 75 dtex PES
+grey:`,
   },
   {
     id: "double-pique",
-    name: "Double piqué (double Lacoste)",
+    name: "Çift lakost (double piqué)",
     body: `article: NEW
-structure: double-pique
+structure: çift lakost
 status: template-unverified
-${sjMachine}
-setout:
-  cylinder: AB
-cams:
-  F1: TK
-  F2: TK
-  F3: KK
-  F4: KT
-  F5: KT
-  F6: KK
-yarns:
-  Y1: { count: 75 dtex, material: PES }
-feeds:
-  F1-F6: { yarn: Y1, loop: 2.9 mm }
-fabric:
-  grey: {}            # gsm, width (cm), cpc, wpc`,
+${SJ}
+cylinder: AB
+
+      F1 F2 F3 F4 F5 F6
+A     T  T  K  K  K  K
+B     K  K  K  T  T  K
+yarn  Y1
+loop  2.9
+
+Y1 = 75 dtex PES
+grey:`,
   },
   {
     id: "tuck-mesh",
-    name: "Tuck mesh (micro mesh)",
+    name: "Askılı file (tuck mesh)",
     body: `article: NEW
-structure: tuck-mesh
+structure: askılı file
 status: template-unverified
-${sjMachine}
-setout:
-  cylinder: AB
-cams:
-  F1: TK
-  F2: KT
-yarns:
-  Y1: { count: 75 dtex, material: PES }
-feeds:
-  F1-F2: { yarn: Y1, loop: 2.8 mm }
-fabric:
-  grey: {}            # gsm, width (cm), cpc, wpc`,
+${SJ}
+cylinder: AB
+
+      F1 F2
+A     T  K
+B     K  T
+yarn  Y1
+loop  2.8
+
+Y1 = 75 dtex PES
+grey:`,
   },
   {
     id: "two-thread-fleece",
-    name: "Two-thread fleece (French terry)",
+    name: "İki iplik (two-thread fleece)",
     body: `article: NEW
-structure: two-thread-fleece
+structure: iki iplik
 status: template-unverified
-${sjMachine}
-  tracks: 4
-setout:
-  cylinder: ABCD
-cams:                 # tracks A B C D
-  F1: TMMM            # loop yarn tucks on A
-  F2: KKKK            # ground
-  F3: MMTM            # loop yarn tucks on C
-  F4: KKKK
-yarns:
-  Y1: { count: Ne 30/1, material: CO }
-  Y2: { count: Ne 20/1, material: CO }
-feeds:
-  F1: { yarn: Y2, loop: 1.6 mm }
-  F2: { yarn: Y1, loop: 2.7 mm }
-  F3: { yarn: Y2, loop: 1.6 mm }
-  F4: { yarn: Y1, loop: 2.7 mm }
-fabric:
-  grey: {}            # gsm, width (cm), cpc, wpc`,
+machine: SJ 30" E20 96F 22rpm 4 tracks
+cylinder: ABCD
+
+      F1  F2  F3  F4
+A     T   K   M   K      # loop yarn tucks on A …
+B     M   K   M   K
+C     M   K   T   K      # … then on C
+D     M   K   M   K
+yarn  Y2  Y1  Y2  Y1
+loop  1.6 2.7 1.6 2.7
+
+Y1 = 30/1 Penye          # ground
+Y2 = 20/1 Penye          # loop
+grey:`,
   },
   {
     id: "three-thread-fleece",
-    name: "Three-thread fleece",
+    name: "Üç iplik (three-thread fleece)",
     body: `article: NEW
-structure: three-thread-fleece
+structure: üç iplik
 status: template-unverified
-${sjMachine}
-  tracks: 4
-setout:
-  cylinder: ABCD
-cams:                 # tracks A B C D
-  F1: TMMM            # fleece yarn tucks on A
-  F2: KKKK            # binder
-  F3: KKKK            # face
-  F4: MMTM            # fleece yarn tucks on C
-  F5: KKKK
-  F6: KKKK
-yarns:
-  Y1: { count: Ne 30/1, material: CO }
-  Y2: { count: 75 dtex, material: PES }
-  Y3: { count: Ne 10/1, material: CO }
-feeds:
-  F1: { yarn: Y3, loop: 1.4 mm }
-  F2: { yarn: Y2, loop: 2.4 mm }
-  F3: { yarn: Y1, loop: 2.8 mm }
-  F4: { yarn: Y3, loop: 1.4 mm }
-  F5: { yarn: Y2, loop: 2.4 mm }
-  F6: { yarn: Y1, loop: 2.8 mm }
-fabric:
-  grey: {}            # gsm, width (cm), cpc, wpc`,
+machine: SJ 30" E20 96F 20rpm 4 tracks
+cylinder: ABCD
+
+      F1  F2  F3  F4  F5  F6
+A     T   K   K   M   K   K
+B     M   K   K   M   K   K
+C     M   K   K   T   K   K
+D     M   K   K   M   K   K
+yarn  Y3  Y2  Y1  Y3  Y2  Y1
+loop  1.6 2.4 2.8 1.6 2.4 2.8
+
+Y1 = 30/1 Penye          # face
+Y2 = 75/36 Poly          # binder
+Y3 = 10/1 Penye          # fleece
+grey:`,
   },
   {
     id: "rib-1x1",
-    name: "1×1 rib",
+    name: "Ribana 1×1",
     body: `article: NEW
-structure: rib-1x1
+structure: ribana 1x1
 status: template-unverified
-${djMachine("rib")}
-setout:
-  cylinder: A
-  dial: A
-cams:
-  F1: { cyl: K, dial: K }
-yarns:
-  Y1: { count: Ne 30/1, material: CO }
-feeds:
-  F1: { yarn: Y1, loop: 3.0 mm }
-fabric:
-  grey: {}            # gsm, width (cm), cpc, wpc`,
+machine: rib 30" E18 60F 22rpm
+cylinder: A
+dial: A'
+
+      F1
+A'    K
+A     K
+yarn  Y1
+loop  3.0
+
+Y1 = 30/1 Penye
+grey:`,
   },
   {
     id: "rib-2x2",
-    name: "2×2 rib",
+    name: "Ribana 2×2",
     body: `article: NEW
-structure: rib-2x2
+structure: ribana 2x2
 status: template-unverified
-${djMachine("rib")}
-setout:               # "-" = needle taken out
-  cylinder: AA--
-  dial: -AA-
-cams:
-  F1: { cyl: K, dial: K }
-yarns:
-  Y1: { count: Ne 30/1, material: CO }
-feeds:
-  F1: { yarn: Y1, loop: 3.0 mm }
-fabric:
-  grey: {}            # gsm, width (cm), cpc, wpc`,
+machine: rib 30" E18 60F 22rpm
+cylinder: AA--           # - = needle taken out
+dial: -A'A'-
+
+      F1
+A'    K
+A     K
+yarn  Y1
+loop  3.0
+
+Y1 = 30/1 Penye
+grey:`,
   },
   {
     id: "interlock",
-    name: "Interlock",
+    name: "İnterlok",
     body: `article: NEW
-structure: interlock
+structure: interlok
 status: template-unverified
-${djMachine("interlock").replace("gauge: 18", "gauge: 24")}
-setout:               # long (A) and short (B) needles
-  cylinder: AB
-  dial: BA
-cams:                 # tracks A B
-  F1: { cyl: KM, dial: KM }
-  F2: { cyl: MK, dial: MK }
-yarns:
-  Y1: { count: Ne 40/1, material: CO }
-feeds:
-  F1-F2: { yarn: Y1, loop: 1.7 mm }
-fabric:
-  grey: {}            # gsm, width (cm), cpc, wpc`,
+machine: interlock 30" E24 72F 24rpm
+cylinder: AB             # A long, B short needles
+dial: B'A'               # long dial needle faces short cylinder needle
+
+      F1  F2
+A'    K   M
+B'    M   K
+A     K   M
+B     M   K
+yarn  Y1
+loop  1.7
+
+Y1 = 40/1 Penye
+grey:`,
   },
   {
     id: "spacer",
-    name: "Spacer / scuba",
+    name: "Scuba / spacer",
     body: `article: NEW
-structure: spacer
+structure: scuba
 status: template-unverified
-${djMachine("interlock").replace("gauge: 18", "gauge: 24")}
-setout:
-  cylinder: AB
-  dial: AB
-cams:                 # tracks A B
-  F1: { cyl: KK, dial: MM }   # face
-  F2: { cyl: MM, dial: KK }   # back
-  F3: { cyl: TM, dial: MT }   # spacer yarn
-  F4: { cyl: KK, dial: MM }
-  F5: { cyl: MM, dial: KK }
-  F6: { cyl: MT, dial: TM }
-yarns:
-  Y1: { count: 75 dtex, material: PES }
-  Y2: { count: 33 dtex, material: PES-mono }
-feeds:
-  F1-F2: { yarn: Y1, loop: 1.8 mm }
-  F3: { yarn: Y2, loop: 2.4 mm }
-  F4-F5: { yarn: Y1, loop: 1.8 mm }
-  F6: { yarn: Y2, loop: 2.4 mm }
-fabric:
-  grey: {}            # gsm, width (cm), cpc, wpc`,
+machine: interlock 30" E24 72F 20rpm
+cylinder: AB
+dial: A'B'
+
+      F1  F2  F3  F4  F5  F6
+A'    M   K   M   M   K   T
+B'    M   K   T   M   K   M
+A     K   M   T   K   M   M
+B     K   M   M   K   M   T
+yarn  Y1  Y1  Y2  Y1  Y1  Y2
+loop  1.8 1.8 2.4 1.8 1.8 2.4
+
+Y1 = 75/72 Poly          # face and back
+Y2 = 33 dtex PES         # spacer monofilament
+grey:`,
   },
 ];
 

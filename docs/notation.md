@@ -1,180 +1,166 @@
-# Knit block notation, v0.1
+# Knit block notation, v0.5
 
-This is the Phase 1 deliverable from the plan. It is a draft until a knitting master has read the cam chart and agreed it matches the machine.
+A fabric is written in a fenced code block tagged `knit`. It is written like a set-up sheet (çelik dizilimi): **one row per track, one column per feeder**, with the yarn and loop length under each feeder. Everything else is a short `key: value` line. Only the cam rows are required. Each extra line unlocks more checks and figures.
 
-A fabric is written in a fenced code block tagged `knit`, in YAML. One note holds one article. Only `machine`, `setout` and `cams` are required. The other groups unlock the calculations.
+This is a draft until a knitting master has read a cam chart and agreed it matches the machine.
 
 ````markdown
 ```knit
 article: SP-1024
-customer: "[[Sporthaus GmbH]]"
+customer: [[Sporthaus GmbH]]
 status: sampling
-structure: single-pique
-machine:
-  type: single-jersey
-  diameter: 30        # inch
-  gauge: 28           # E, needles per inch
-  feeders: 96
-  rpm: 25
-  efficiency: 0.85
-  needles: 2640       # optional: real figure from the machine plate
-setout:
-  cylinder: AB
-cams:                 # one letter per track, tracks in A-B-C-D order
-  F1: KK
-  F2: KT
-  F3: KK
-  F4: TK
-yarns:
-  Y1: { count: 75 dtex, material: PES }
-  Y2: { count: 22 dtex, material: EA }
-feeds:
-  F1-F4: { yarn: Y1, loop: 2.9 mm, plate: Y2, draft: 3 }
-fabric:
-  grey: { gsm: 165, width: 172 cm, cpc: 21, wpc: 14 }
-  finished: { gsm: 180, width: 160 cm }
-order_kg: 1500
+structure: lakost
+machine: SJ 30" E28 96F 25rpm 85%
+needles: 2640
+cylinder: AB
+
+      F1 F2 F3 F4
+A     K  K  K  T
+B     K  T  K  K
+yarn  Y1+Y2
+loop  2.9
+
+Y1 = 75/72 dtex PES
+Y2 = 22 dtex likra draft 3
+
+grey: 165 gsm 172 cm 21 cpc 14 wpc
+finished: 180 gsm 160 cm
+order: 1500 kg
 ```
 ````
 
-## Article
+Lines can come in any order. Blank lines are ignored, and `#` starts a comment. Turkish keywords work too (shown in brackets below).
 
-| Key | Meaning |
-| --- | --- |
-| `article` | Article code from the ERP |
-| `customer` | Text or a link to a customer note, e.g. `"[[Sporthaus GmbH]]"` (quote links) |
-| `status` | Free text, e.g. `sampling`, `approved`, `in production` |
-| `structure` | Free text, e.g. `single-pique` |
-| `notes` | Free text shown on the spec card |
-| `order_kg` | Order quantity, for machine-hours |
+## Cam grid
 
-## Machine
-
-| Key | Meaning | Unit |
-| --- | --- | --- |
-| `type` | `single-jersey` (`sj`, `tek-plaka`) or `double-jersey` (`dj`, `çift-plaka`); `rib` and `interlock` also set the gating | |
-| `diameter` | Cylinder diameter | inch |
-| `gauge` | E, needles per inch | |
-| `dial_gauge` | Only when it is recorded separately. It must equal `gauge` | |
-| `feeders` | Feeders on the machine | |
-| `rpm` | Revolutions per minute | |
-| `efficiency` | `0.85`, `85` or `"85%"`. Default from settings (0.85) | |
-| `needles` | Real needles per bed from the machine plate. Overrides π·D·E | |
-| `tracks` | Number of needle tracks (butt positions). Set-out letters must stay within them | |
-| `gating` | Double jersey: `rib` (default) or `interlock` | |
-| `ref` | Link to a machine note | |
-
-**Machine notes.** `machine: "[[M-12]]"` (or `ref: "[[M-12]]"` inside the map) reads `type`, `diameter`, `gauge`, `feeders`, `rpm`, `needles` and `tracks` from the properties of the note `M-12`. Values written in the block override the note's values.
-
-## Needle set-out (iğne dizilimi)
-
-```yaml
-setout:
-  cylinder: AABB      # one letter per needle, one repeat
-  dial: -AA-          # double jersey only
+```
+      F1 F2 F3 F4        ← feeder header (optional)
+A     K  K  K  T         ← one row per silindir track
+B     K  T  K  K
+A'    M  K  M  K         ← kapak (dial) tracks carry an apostrophe
 ```
 
-- Each letter is the butt/track of one needle. The string is one repeat, and it repeats around the bed.
-- `-` (or `.` / `_`) is an empty slot, meaning the needle is taken out. It is used for 2×2 rib and similar set-outs.
-- Spaces are ignored: `A B A B` is the same as `ABAB`.
-- On a single-jersey machine, `setout: AB` is short for `setout: { cylinder: AB }`.
-
-Tracks can also be written as butt numbers: `cylinder: 1234` is the same as `ABCD` (1 = A). Dial (kapak) tracks are shown with an apostrophe, A′ B′, to tell them apart from cylinder tracks. In the block you can write `dial: BA` or `dial: B'A'`; both mean the same. In rib gating, dial needle *i* is drawn between cylinder needles *i* and *i + 1*; in interlock gating, it is drawn directly opposite cylinder needle *i*.
-
-The cam chart is laid out like a set-up sheet (çelik dizilimi): one row per track, with kapak rows above silindir rows, and one column per feeder, with the yarn and loop length under each column.
-
-## Cams (kam dizilimi)
-
-One row per feeder of the repeat, with one letter per track:
-
-| Letter | Stitch | Türkçe |
+| Cell | Stitch | Türkçe |
 | --- | --- | --- |
 | `K` | knit | ilmek |
 | `T` | tuck | askı |
-| `M` | miss | atlama |
+| `M` (or `-`) | miss | atlama |
 
-The cam chart can show these as letters (as on factory sheets) or as textbook cam symbols: ∧ knit (full raise), ⏜ tuck (half raise), — miss. Track names (A B C D or 1 2 3 4) and whether the first track is the top or bottom row are also settings.
+- **Tracks** can be letters (`A B C D`) or butt numbers (`1 2 3 4`); `1` is the same as `A`. Kapak tracks are `A'` / `1'`.
+- **Cells** can be spaced (`K T K M`) or packed (`KTKM`).
+- **The feeder header** is optional. Without it, the width of the first row sets the number of feeders.
+- **Rows that never knit** are fine: a track with no needles can stay in the grid, as on a factory sheet.
+- **The repeat height** is the number of columns. It must divide the machine's feeder count.
 
-In the knitting diagram, knit is an open loop drawn right round the needle (legs side by side), tuck is a shallow loop that only reaches the hook, and miss is a straight line past the needle.
+## Feed rows
 
-- **Track order is alphabetical**, so for tracks A and B, `F2: KT` means A = knit and B = tuck. Tracks are the distinct letters used in that bed's set-out.
-- The map form works too: `F2: { A: K, B: T }`.
-- On double jersey, split each row into beds: `F1: { cyl: KM, dial: MK }`.
-- Keys can be ranges or lists: `F1-F4: KK` or `F1,F3: KK`.
-- Feeders must run F1…Fn with no gaps. The repeat height n must divide the machine's feeders.
-- A row that is all `M` is an empty feeder.
+Under the grid, one value per feeder, or **one value for all feeders**:
+
+```
+yarn  Y2  Y1  Y2  Y1     (iplik)
+loop  1.6 2.7 1.6 2.7    (ilmek) mm
+runin 290                (sarfiyat) measured run-in, mm per 100 needles
+```
+
+- **`Y1+Y2`** means Y2 is plated with Y1.
+- **`-`** means the feeder has no yarn (an empty feeder).
+- **When `runin` is given,** it replaces the stitch-length sum.
 
 ## Yarns
 
-```yaml
-yarns:
-  Y1: { count: 75/72 dtex, material: PES }
-  Y2: { count: Ne 30/1, material: CO }
+```
+Y1 = 40/1 Penye
+Y2 = 70/36 Poly
+Y3 = 22 dtex likra draft 3
+Y4 = 75/72 dtex PES
 ```
 
-Accepted counts are `dtex` (a bare number is read as dtex), `den`, `tex`, `Ne`, and `Nm`. In `75/72 dtex` the second figure is the filament count and is ignored for mass. In `30/2 Ne` the second figure is the ply, so the yarn is twice as heavy.
+Write yarns the way the factory does:
 
-## Feeds
+- **Materials:** `Penye`, `pamuk`, `karde` → CO; `Poly`, `Pol`, `polyester` → PES; `likra`, `elastan` → EA; `viskon` → CV; `naylon` → PA. Any other word is kept as written.
+- **Counts without a unit:** read as **Ne** for cotton and viscose (`40/1 Penye` = Ne 40/1) and as **denier** for filament yarns (`70/36 Poly` = 70 den, 36 filaments).
+- **Counts with a unit:** add the unit to be explicit, e.g. `dtex`, `den`, `tex`, `Ne`, `Nm`. In `30/2 Ne` the 2 is the ply, so the yarn is twice as heavy.
+- **`draft 3`** on an elastane yarn: when it is plated, its relaxed length is loop ÷ draft.
 
-```yaml
-feeds:
-  F1-F4: { yarn: Y1, loop: 2.9 mm, plate: Y2, draft: 3 }
-  F5:    { yarn: Y3, loop: 1.6 mm, tuck: 1.2 mm, miss: 0.9 mm }
-  F6:    { yarn: Y1, runin: 290 mm }
-```
+## Lines
 
-| Key | Meaning |
+| Line | Meaning |
 | --- | --- |
-| `yarn` | Main yarn |
-| `loop` | Stitch length (ilmek boyu). A bare number is mm |
-| `plate` | Plating yarn fed with the main yarn |
-| `draft` | Plating yarn draft (e.g. elastane 3). Its relaxed length is loop ÷ draft |
-| `tuck` | Yarn length per tuck. Default: setting × loop (0.5) |
-| `miss` | Yarn length per missed needle (float). Default: setting × loop (0.3) |
-| `runin` | Measured run-in per 100 needles. When given, it replaces the stitch sum |
+| `article:` (artikel) | Article code |
+| `customer:` (müşteri) | Text or a link: `[[Sporthaus GmbH]]` |
+| `status:` (durum), `structure:` (örgü), `notes:` (not) | Free text |
+| `order:` (sipariş) | Order quantity, e.g. `1500 kg`, for machine-hours |
+| `machine:` (makine) | See below |
+| `needles:` (iğne) | Real needles per bed from the machine plate. Overrides π·D·E |
+| `cylinder:` (silindir) | Silindir needle set-out, one letter per needle, one repeat: `AB`, `1234`, `AA--` |
+| `dial:` (kapak) | Kapak needle set-out: `B'A'` or `BA`, `-A'A'-` |
+| `grey:` (ham), `finished:` (mamul) | e.g. `165 gsm 172 cm 21 cpc 14 wpc` |
 
-## Fabric
+In set-outs, `-` is an empty slot (needle taken out). If `cylinder:` is missing, the plugin assumes the tracks that knit, in row order, and shows a warning, because that needle order is a guess.
 
-```yaml
-fabric:
-  grey:     { gsm: 165, width: 172 cm, cpc: 21, wpc: 14 }
-  finished: { gsm: 180, width: 160 cm, cpc: 24, wpc: 16 }
+## Machine line
+
+```
+machine: SJ 30" E28 96F 25rpm 85% 4 tracks
+machine: interlok 30 pus E24 72 besleyici 24 devir
+machine: [[M-12]] 22rpm
 ```
 
-Grey (ham) and finished (mamul) are kept apart because dyeing and finishing change GSM and width. `width` is open width; `cm` is assumed. `cpc` counts **feeder rows per cm**, meaning one course for each row of the cam chart. `wpc` counts face wales per cm.
+| Token | Meaning |
+| --- | --- |
+| `SJ` / `tek`, `DJ` / `çift` | Single or double jersey. If omitted, kapak rows mean double jersey |
+| `rib` / `ribana`, `interlock` / `interlok` | Double jersey with that gating. Rib: kapak needles sit between silindir needles. Interlock: directly opposite |
+| `30"`, `30 pus` | Diameter in inches |
+| `E28` | Gauge |
+| `96F`, `96 besleyici` | Feeders |
+| `25rpm`, `25 devir` | RPM |
+| `85%` | Efficiency (default from settings: 85%) |
+| `4 tracks`, `4 ray` | Needle tracks; set-out tracks must stay within them |
+| `[[M-12]]` | Machine note: reads `type`, `diameter`, `gauge`, `feeders`, `rpm`, `needles`, `tracks` from its properties. Values on the line win |
+
+## Display
+
+- **Cam chart (kam tablosu):** the set-out strip on top, then the cam grid laid out as written: kapak rows above silindir rows, yarn and loop under each feeder. Settings control:
+  - letters K/T/M or textbook cam symbols (∧ knit, ⏜ tuck, — miss);
+  - track names A–D or 1–4;
+  - whether the first track is the top or the bottom row.
+- **Knitting diagram (örgü diyagramı):** standard needle notation. F1 is at the bottom and the last feeder at the top. Knit is an open loop round the needle, tuck a shallow loop that only reaches the hook, and miss a straight line. Kapak needles sit above the yarn, silindir needles below.
 
 ## Calculations
 
 All figures are estimates, shown with their inputs.
 
-- **Needles** N = π × D × E, unless `needles` is given.
-- **Yarn per feeder and revolution** = Σ over beds and needles of the stitch length (knit = loop, tuck = `tuck`, miss = `miss`). On double jersey, a bed counts only when the feeder knits or tucks on it.
-- **Production** P (kg/h) = RPM × 60 × η × Σ feeders (length × tex) / 10⁹. For plain jersey this is the plan's formula: RPM × F × N × L × T × 60 × η / 10⁹.
-- **GSM** = CPC × WPC × 10⁴ × (mass per face wale per feeder row). For plain jersey this is CPC × WPC × L × T / 100. On double jersey, both beds' loops count against each face wale.
-- **Composition**: each material's mass share of the yarn per repeat.
-- **Width**: open = needles in action on the cylinder ÷ WPC; flat tube = half of that.
-- **Machine-hours** = `order_kg` ÷ P.
-- **Tightness factor** = √tex ÷ loop (mm), for each yarn and loop.
+- **Needles:** N = π × D × E, unless `needles:` is given.
+- **Yarn per feeder and revolution:** the sum over beds and needles of the stitch length (knit = loop; tuck and miss = settings × loop). On double jersey, a bed counts only when the feeder knits or tucks on it.
+- **Production:** P (kg/h) = RPM × 60 × η × Σ feeders (length × tex) / 10⁹.
+- **GSM:** CPC × WPC × 10⁴ × (mass per face wale per feeder row). For plain jersey this is CPC × WPC × L × T / 100. `cpc` counts feeder rows per cm.
+- **Composition:** each material's mass share of the yarn per repeat.
+- **Width:** open = needles in action on the silindir ÷ WPC; flat tube = half of that.
+- **Machine-hours:** order kg ÷ P.
+- **Tightness factor:** √tex ÷ loop (mm).
 
-## Validation
+## Checks
 
 | Rule | Level |
 | --- | --- |
-| Every needle (track, per bed) knits at least once per repeat | Error |
-| Feeder repeat divides the machine's feeders | Error |
+| Every track in the set-out knits at least once per repeat | Error |
+| Repeat height divides the machine's feeder count | Error |
 | Set-out width divides the needle count (suggests the nearest multiple) | Warning |
-| Cam strings match the tracks used in the set-out; letters are K/T/M | Error |
-| Tucks held before the next knit > limit (default 2). Misses do not clear the hook | Warning |
-| Float over consecutive missed needles on one feeder > limit (default 3) | Warning |
+| Every cam row has one cell per feeder; set-out tracks have a cam row | Error |
+| A track has cams but no needles in the set-out | Warning |
+| Set-out not given, so it was assumed | Warning |
+| Tucks held before the next knit > limit (default 2) | Warning |
+| Float over consecutive missed needles > limit (default 3) | Warning |
+| Interlock gating: facing needles both knit or tuck at one feeder | Error |
 | Loop length, gauge, rpm, diameter, efficiency in sane ranges | Warning |
-| Double jersey: dial set-out and dial cams present, gauges equal | Error |
-| Knitting feeder without a feed | Warning |
+| Knitting feeder without a yarn | Warning |
 | Entered grey GSM differs from the calculated GSM by more than 15% | Warning |
+| A line that is not understood | Warning |
 
 The limits are plugin settings.
 
 ## Open questions for the floor
 
-- How many tracks each Mayer machine has, and whether the masters call them A–D, 1–4, or by butt height.
-- The knitting diagram draws F1 at the bottom (standard notation); the cam chart lists F1 at the top like a set-up sheet. Check that this matches how the masters read them.
+- How the masters name and count tracks (A–D or 1–4; from the top or the bottom butt). The display settings can then match.
+- Whether bare polyester counts on their sheets are denier (assumed) or dtex.
 - Whether `cpc` should count visible courses instead of feeder rows. On piqué, one visible course is two feeders.

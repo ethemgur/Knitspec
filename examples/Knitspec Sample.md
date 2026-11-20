@@ -14,31 +14,21 @@ article: SP-1024
 customer: Sample Customer
 status: sampling
 structure: single-pique
-machine:
-  type: single-jersey
-  diameter: 30        # inch
-  gauge: 28           # E
-  feeders: 96
-  rpm: 25
-  efficiency: 0.85
-  needles: 2640       # from the machine plate
-  tracks: 2
-setout:
-  cylinder: AB
-cams:                 # one letter per track: A B
-  F1: KK
-  F2: KT
-  F3: KK
-  F4: TK
-yarns:
-  Y1: { count: 75/72 dtex, material: PES }
-  Y2: { count: 22 dtex, material: EA }
-feeds:
-  F1-F4: { yarn: Y1, loop: 2.9 mm, plate: Y2, draft: 3 }
-fabric:
-  grey: { gsm: 165, width: 172 cm, cpc: 51, wpc: 15.5 }   # cpc = feeder rows per cm
-  finished: { gsm: 180, width: 160 cm }
-order_kg: 1500
+machine: SJ 30" E28 96F 25rpm 85% 2 tracks
+needles: 2640
+cylinder: AB
+
+      F1  F2  F3  F4
+A     K   K   K   T
+B     K   T   K   K
+yarn  Y1+Y2
+loop  2.9
+
+Y1 = 75/72 dtex PES
+Y2 = 22 dtex EA draft 3
+grey: 165 gsm 172 cm 51 cpc 15.5 wpc
+finished: 180 gsm 160 cm
+order: 1500 kg
 notes: Elastane draft 3. Check run-in on F2 and F4 after the first roll.
 ```
 
@@ -50,31 +40,21 @@ Four tracks (A–D). The loop yarn tucks on one needle in four and floats over t
 article: FL-2210
 status: approved
 structure: two-thread-fleece
-machine:
-  type: single-jersey
-  diameter: 30
-  gauge: 20
-  feeders: 96
-  rpm: 22
-  needles: 1884
-  tracks: 4
-setout:
-  cylinder: ABCD
-cams:                 # tracks A B C D
-  F1: TMMM            # loop yarn tucks on A
-  F2: KKKK            # ground
-  F3: MMTM            # loop yarn tucks on C
-  F4: KKKK
-yarns:
-  Y1: { count: Ne 30/1, material: CO }
-  Y2: { count: Ne 20/1, material: CO }
-feeds:
-  F1: { yarn: Y2, loop: 1.6 mm }
-  F2: { yarn: Y1, loop: 2.7 mm }
-  F3: { yarn: Y2, loop: 1.6 mm }
-  F4: { yarn: Y1, loop: 2.7 mm }
-fabric:
-  grey: { cpc: 18, wpc: 11 }
+machine: SJ 30" E20 96F 22rpm 4 tracks
+needles: 1884
+cylinder: ABCD
+
+      F1  F2  F3  F4
+A     T   K   M   K
+B     M   K   M   K
+C     M   K   T   K
+D     M   K   M   K
+yarn  Y2  Y1  Y2  Y1
+loop  1.6 2.7 1.6 2.7
+
+Y1 = Ne 30/1 CO
+Y2 = Ne 20/1 CO
+grey: 18 cpc 11 wpc
 ```
 
 ## 3. 2×2 rib (double jersey)
@@ -85,25 +65,19 @@ fabric:
 article: RB-0450
 status: sampling
 structure: rib-2x2
-machine:
-  type: double-jersey
-  gating: rib
-  diameter: 30
-  gauge: 18
-  feeders: 60
-  rpm: 22
-  needles: 1692
-setout:
-  cylinder: AA--
-  dial: -AA-
-cams:
-  F1: { cyl: K, dial: K }
-yarns:
-  Y1: { count: Ne 30/1, material: CO }
-feeds:
-  F1: { yarn: Y1, loop: 3.0 mm }
-fabric:
-  grey: { cpc: 14, wpc: 9 }
+machine: rib 30" E18 60F 22rpm
+needles: 1692
+cylinder: AA--
+dial: -A'A'-
+
+      F1
+A'    K
+A     K
+yarn  Y1
+loop  3.0
+
+Y1 = Ne 30/1 CO
+grey: 14 cpc 9 wpc
 ```
 
 ## 4. Interlock
@@ -114,26 +88,22 @@ Long (A) and short (B) needles. Each feeder knits 1×1 rib on alternate needles,
 article: IL-3300
 status: in production
 structure: interlock
-machine:
-  type: interlock
-  diameter: 30
-  gauge: 24
-  feeders: 72
-  rpm: 24
-  needles: 2256
-setout:
-  cylinder: AB
-  dial: BA
-cams:                 # tracks A B
-  F1: { cyl: KM, dial: KM }
-  F2: { cyl: MK, dial: MK }
-yarns:
-  Y1: { count: Ne 40/1, material: CO }
-feeds:
-  F1-F2: { yarn: Y1, loop: 1.7 mm }
-fabric:
-  grey: { cpc: 16, wpc: 12 }
-order_kg: 800
+machine: interlock 30" E24 72F 24rpm
+needles: 2256
+cylinder: AB
+dial: B'A'
+
+      F1  F2
+A'    K   M
+B'    M   K
+A     K   M
+B     M   K
+yarn  Y1
+loop  1.7
+
+Y1 = Ne 40/1 CO
+grey: 16 cpc 12 wpc
+order: 800 kg
 ```
 
 ## 5. Validation demo (intentional mistakes)
@@ -149,16 +119,17 @@ This block is wrong on purpose, so you can see the checks on the spec card:
 ```knit
 article: TEST-ERR
 structure: broken-on-purpose
-machine: { type: single-jersey, diameter: 30, gauge: 28, feeders: 96, rpm: 25 }
-setout: { cylinder: ABC }
-cams:                 # tracks A B C
-  F1: TMK
-  F2: TMK
-  F3: TMK
-  F4: KMK
-  F5: KMK
-yarns: { Y1: { count: 75 dtex, material: PES } }
-feeds: { F1-F5: { yarn: Y1, loop: 29 } }
+machine: SJ 30" E28 96F 25rpm
+cylinder: ABC
+
+      F1  F2  F3  F4  F5
+A     T   T   T   K   K
+B     M   M   M   M   M
+C     K   K   K   K   K
+yarn  Y1
+loop  29
+
+Y1 = 75 dtex PES
 ```
 
 ## Try next
