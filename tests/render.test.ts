@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { toCsv } from "../src/export";
 import { issueText } from "../src/i18n";
 import { findKnitBlock } from "../src/pipeline";
+import { knitLoop, tuckLoop } from "../src/render/diagram";
+import { trackLabel } from "../src/render/options";
 import { renderCamChart } from "../src/render/camChart";
 import { renderDiagram } from "../src/render/diagram";
 import { buildSpec } from "../src/render/spec";
@@ -58,8 +60,9 @@ describe("SVG renderers", () => {
     // 12 needles drawn (6 repeats of AB) × 4 feeders = 48 loops, 6 of them tucks per tuck row.
     const knit = (svg.match(/stroke="#2e8b57" stroke-width="1.6"/g) ?? []).length;
     const tuck = (svg.match(/stroke="#d9822b" stroke-width="1.6"/g) ?? []).length;
-    expect(knit + tuck).toBe(48);
-    expect(tuck).toBe(12);
+    // + one knit and one tuck sample in the legend
+    expect(knit + tuck).toBe(48 + 2);
+    expect(tuck).toBe(12 + 1);
   });
 
   it("escapes text", () => {
@@ -136,5 +139,32 @@ describe("diagram orientation", () => {
     const y = (f: string) => Number(svg.match(new RegExp(`<text x="8" y="([\\d.]+)"[^>]*>${f}<`))![1]);
     expect(y("F1")).toBeGreaterThan(y("F2"));
     expect(y("F2")).toBeGreaterThan(y("F4"));
+  });
+});
+
+describe("textbook notation options", () => {
+  it("knit is an open loop round the needle; tuck only reaches the hook", () => {
+    // knit passes beyond the needle (y 20 → 26), tuck peaks at the needle (≈ 21)
+    const ys = (d: string) => [...d.matchAll(/-?\d+(?:\.\d+)?/g)].map(Number).filter((_, i) => i % 2 === 1);
+    expect(Math.max(...ys(knitLoop(50, 0, 20, 1)))).toBe(26);
+    expect(Math.max(...ys(tuckLoop(50, 0, 20, 1)))).toBeLessThanOrEqual(28);
+    expect(tuckLoop(50, 0, 20, 1).split("C").length - 1).toBe(1); // one simple curve
+  });
+
+  it("cam symbols replace letters when chosen", () => {
+    const { fabric } = run(fixture("sp-1024-single-pique.yaml"));
+    const svg = renderCamChart(fabric!, "en", undefined, { camStyle: "symbols", trackNames: "letters", trackOrder: "first-top" });
+    expect(svg).toContain("<polyline");
+    expect(svg).not.toMatch(/font-weight="600"[^>]*>K</);
+  });
+
+  it("tracks can be numbered and ordered first-at-bottom", () => {
+    expect(trackLabel("cyl", "C", { camStyle: "letters", trackNames: "numbers", trackOrder: "first-top" })).toBe("3");
+    expect(trackLabel("dial", "B", { camStyle: "letters", trackNames: "numbers", trackOrder: "first-top" })).toBe("2′");
+    const { fabric } = run(fixture("fl-2210-fleece.yaml"));
+    const svg = renderCamChart(fabric!, "en", undefined, { camStyle: "letters", trackNames: "numbers", trackOrder: "first-bottom" });
+    const y = (l: string) => Number(svg.match(new RegExp(`y="([\\d.]+)" text-anchor="end"[^>]*>${l}<`))![1]);
+    expect(y("1")).toBeGreaterThan(y("4"));
+    expect(svg).toContain("1 2 3 4 ×");
   });
 });

@@ -1,6 +1,5 @@
 import { Bed, Fabric, isDouble, Stitch, stitchAt } from "../model";
 import { Lang, t } from "../i18n";
-import { legend } from "./camChart";
 import { round, STITCH_COLOUR, svgRoot, tag, text } from "./svg";
 
 const PITCH = 24; // distance between cylinder needles
@@ -12,20 +11,12 @@ function gcd(a: number, b: number): number {
   return b === 0 ? a : gcd(b, a % b);
 }
 
-/** Closed (crossed) loop around a needle: knit. d = +1 loop goes down (cylinder), -1 up (dial). */
+/**
+ * Knit: an open loop drawn right round the needle, legs side by side (not
+ * crossed), as in textbook needle notation. d = +1 loop goes down (cylinder),
+ * -1 up (dial).
+ */
 export function knitLoop(x: number, y0: number, yn: number, d: number): string {
-  const r = (v: number) => round(v);
-  return [
-    `M ${r(x - HALF)} ${r(y0)}`,
-    `C ${r(x + 1)} ${r(y0)} ${r(x + 5)} ${r(yn - d * 4)} ${r(x + 5)} ${r(yn)}`,
-    `C ${r(x + 5)} ${r(yn + d * 4)} ${r(x + 3)} ${r(yn + d * 6)} ${r(x)} ${r(yn + d * 6)}`,
-    `C ${r(x - 3)} ${r(yn + d * 6)} ${r(x - 5)} ${r(yn + d * 4)} ${r(x - 5)} ${r(yn)}`,
-    `C ${r(x - 5)} ${r(yn - d * 4)} ${r(x - 1)} ${r(y0)} ${r(x + HALF)} ${r(y0)}`,
-  ].join(" ");
-}
-
-/** Open hook around a needle, legs not crossed: tuck. */
-export function tuckLoop(x: number, y0: number, yn: number, d: number): string {
   const r = (v: number) => round(v);
   return [
     `M ${r(x - HALF)} ${r(y0)}`,
@@ -34,6 +25,41 @@ export function tuckLoop(x: number, y0: number, yn: number, d: number): string {
     `C ${r(x + 3)} ${r(yn + d * 6)} ${r(x + 5)} ${r(yn + d * 4)} ${r(x + 5)} ${r(yn)}`,
     `C ${r(x + 5)} ${r(yn - d * 3)} ${r(x + 6)} ${r(y0 + d * 2)} ${r(x + HALF)} ${r(y0)}`,
   ].join(" ");
+}
+
+/**
+ * Tuck: a shallow held loop that reaches the needle hook but does not go
+ * round it (no new stitch is formed).
+ */
+export function tuckLoop(x: number, y0: number, yn: number, d: number): string {
+  const r = (v: number) => round(v);
+  const apex = yn + d * 1; // just catches the hook
+  const cy = y0 + (apex - y0) * 4 / 3; // cubic control height so the curve peaks at apex
+  return `M ${r(x - HALF)} ${r(y0)} C ${r(x - 4)} ${r(cy)} ${r(x + 4)} ${r(cy)} ${r(x + HALF)} ${r(y0)}`;
+}
+
+/** Legend for the diagram: the three yarn shapes themselves. */
+function diagramLegend(lang: Lang, x: number, y: number): { svg: string; width: number } {
+  const parts: string[] = [];
+  let cx = x;
+  for (const s of ["K", "T", "M"] as Stitch[]) {
+    const nx = cx + 12;
+    const y0 = y - 10;
+    const yn = y0 + 9;
+    parts.push(tag("circle", { cx: nx, cy: yn, r: 2.2, fill: s === "M" ? "none" : "currentColor", stroke: "currentColor" }));
+    if (s === "M") {
+      parts.push(tag("path", { d: `M ${cx} ${y0} H ${cx + 24}`, fill: "none", stroke: "currentColor", "stroke-width": 1.4 }));
+    } else {
+      parts.push(
+        tag("path", { d: `M ${cx} ${y0} H ${nx - HALF}`, fill: "none", stroke: "currentColor", "stroke-width": 1.4 }),
+        tag("path", { d: s === "K" ? knitLoop(nx, y0, yn, 1) : tuckLoop(nx, y0, yn, 1), fill: "none", stroke: STITCH_COLOUR[s], "stroke-width": 1.6 }),
+        tag("path", { d: `M ${nx + HALF} ${y0} H ${cx + 24}`, fill: "none", stroke: "currentColor", "stroke-width": 1.4 }),
+      );
+    }
+    parts.push(text(cx + 30, y + 1, t(lang, `stitch.${s}`), { fill: "currentColor" }));
+    cx += 100;
+  }
+  return { svg: parts.join(""), width: cx - x };
 }
 
 /**
@@ -137,7 +163,7 @@ export function renderDiagram(fabric: Fabric, lang: Lang): string {
     body.push(tag("path", { d: straight.join(" "), fill: "none", stroke: "currentColor", "stroke-width": 1.4 }));
   });
 
-  const lg = legend(lang, LEFT, height - 14);
+  const lg = diagramLegend(lang, LEFT, height - 10);
   body.push(lg.svg);
   return svgRoot(Math.max(width, LEFT + lg.width), height, "knitspec-diagram", body, t(lang, "tab.diagram"));
 }

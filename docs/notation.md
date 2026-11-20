@@ -79,7 +79,7 @@ setout:
 - Spaces are ignored: `A B A B` is the same as `ABAB`.
 - On a single-jersey machine, `setout: AB` is short for `setout: { cylinder: AB }`.
 
-Dial (kapak) tracks are shown with an apostrophe, A′ B′, to tell them apart from cylinder tracks. In the block you can write `dial: BA` or `dial: B'A'`; both mean the same. In rib gating, dial needle *i* is drawn between cylinder needles *i* and *i + 1*; in interlock gating, it is drawn directly opposite cylinder needle *i*.
+Tracks can also be written as butt numbers: `cylinder: 1234` is the same as `ABCD` (1 = A). Dial (kapak) tracks are shown with an apostrophe, A′ B′, to tell them apart from cylinder tracks. In the block you can write `dial: BA` or `dial: B'A'`; both mean the same. In rib gating, dial needle *i* is drawn between cylinder needles *i* and *i + 1*; in interlock gating, it is drawn directly opposite cylinder needle *i*.
 
 The cam chart is laid out like a set-up sheet (çelik dizilimi): one row per track, with kapak rows above silindir rows, and one column per feeder, with the yarn and loop length under each column.
 
@@ -92,6 +92,10 @@ One row per feeder of the repeat, with one letter per track:
 | `K` | knit | ilmek |
 | `T` | tuck | askı |
 | `M` | miss | atlama |
+
+The cam chart can show these as letters (as on factory sheets) or as textbook cam symbols: ∧ knit (full raise), ⏜ tuck (half raise), — miss. Track names (A B C D or 1 2 3 4) and whether the first track is the top or bottom row are also settings.
+
+In the knitting diagram, knit is an open loop drawn right round the needle (legs side by side), tuck is a shallow loop that only reaches the hook, and miss is a straight line past the needle.
 
 - **Track order is alphabetical**, so for tracks A and B, `F2: KT` means A = knit and B = tuck. Tracks are the distinct letters used in that bed's set-out.
 - The map form works too: `F2: { A: K, B: T }`.

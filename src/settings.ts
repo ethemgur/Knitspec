@@ -2,6 +2,7 @@ import { App, PluginSettingTab, Setting } from "obsidian";
 import { CalcOptions, DEFAULT_CALC } from "./calc";
 import { CsvSeparator } from "./export";
 import { Lang } from "./i18n";
+import { DEFAULT_DISPLAY, DisplayOptions } from "./render/options";
 import { Template } from "./templates";
 import { DEFAULT_VALIDATION, ValidationOptions } from "./validate";
 import type KnitspecPlugin from "./main";
@@ -11,6 +12,7 @@ export type TabId = "cams" | "diagram" | "spec";
 export interface KnitspecSettings {
   language: Lang;
   defaultTab: TabId;
+  display: DisplayOptions;
   calc: CalcOptions;
   validation: ValidationOptions;
   csvSeparator: CsvSeparator;
@@ -22,6 +24,7 @@ export interface KnitspecSettings {
 export const DEFAULT_SETTINGS: KnitspecSettings = {
   language: "tr",
   defaultTab: "cams",
+  display: { ...DEFAULT_DISPLAY },
   calc: { ...DEFAULT_CALC },
   validation: structuredClone(DEFAULT_VALIDATION),
   csvSeparator: ";",
@@ -35,6 +38,7 @@ export function mergeSettings(saved: Partial<KnitspecSettings> | null): Knitspec
     ...DEFAULT_SETTINGS,
     ...s,
     calc: { ...DEFAULT_SETTINGS.calc, ...(s.calc ?? {}) },
+    display: { ...DEFAULT_DISPLAY, ...(s.display ?? {}) },
     validation: {
       ...DEFAULT_SETTINGS.validation,
       ...(s.validation ?? {}),
@@ -103,6 +107,40 @@ export class KnitspecSettingTab extends PluginSettingTab {
           s.defaultTab = v as TabId;
           await this.plugin.saveSettings();
         }),
+    );
+
+    new Setting(containerEl).setName("Notation").setHeading();
+    const drop = (name: string, desc: string, options: Record<string, string>, get: () => string, set: (v: string) => void) =>
+      new Setting(containerEl)
+        .setName(name)
+        .setDesc(desc)
+        .addDropdown((d) => {
+          for (const [k, v] of Object.entries(options)) d.addOption(k, v);
+          d.setValue(get()).onChange(async (v) => {
+            set(v);
+            await this.plugin.saveSettings();
+          });
+        });
+    drop(
+      "Cam style",
+      "Letters as on factory sheets, or textbook cam symbols (∧ knit, ⏜ tuck, — miss).",
+      { letters: "K / T / M letters", symbols: "Cam symbols ∧ ⏜ —" },
+      () => s.display.camStyle,
+      (v) => (s.display.camStyle = v as DisplayOptions["camStyle"]),
+    );
+    drop(
+      "Track names",
+      "How butt positions are named. Kapak tracks always carry an apostrophe (A′ / 1′).",
+      { letters: "A B C D", numbers: "1 2 3 4" },
+      () => s.display.trackNames,
+      (v) => (s.display.trackNames = v as DisplayOptions["trackNames"]),
+    );
+    drop(
+      "Track order in the cam chart",
+      "Whether the first track (A / 1) is the top row or the bottom row, as the masters count butts.",
+      { "first-top": "First track at the top", "first-bottom": "First track at the bottom" },
+      () => s.display.trackOrder,
+      (v) => (s.display.trackOrder = v as DisplayOptions["trackOrder"]),
     );
 
     new Setting(containerEl).setName("Calculations").setHeading();

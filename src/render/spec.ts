@@ -1,6 +1,8 @@
 import { Figures } from "../calc";
 import { Fabric, Feed, isDouble, Issue } from "../model";
 import { fmt, I18nKey, issueText, Lang, t } from "../i18n";
+import { DEFAULT_DISPLAY, DisplayOptions, trackLabel } from "./options";
+import { EMPTY } from "../model";
 
 export interface SpecRow {
   label: string;
@@ -60,7 +62,14 @@ export function compositionText(figures: Figures, lang: Lang): string {
   return figures.composition.map((c) => `${fmt(lang, c.share * 100, 0)}% ${c.material}`).join(" / ");
 }
 
-export function buildSpec(fabric: Fabric, figures: Figures, issues: Issue[], lang: Lang): SpecCard {
+export function buildSpec(
+  fabric: Fabric,
+  figures: Figures,
+  issues: Issue[],
+  lang: Lang,
+  display: DisplayOptions = DEFAULT_DISPLAY,
+): SpecCard {
+  const shown = (bed: "cyl" | "dial", set: string[]) => set.map((l) => (l === EMPTY ? l : trackLabel(bed, l, display))).join(display.trackNames === "numbers" ? " " : "");
   const dash = t(lang, "label.unknownFigure");
   const sections: SpecSection[] = [];
 
@@ -87,8 +96,8 @@ export function buildSpec(fabric: Fabric, figures: Figures, issues: Issue[], lan
   mrows.push({
     label: t(lang, "tab.setout"),
     value:
-      `${t(lang, "bed.cyl")} ${fabric.setout.cylinder.join("")}` +
-      (isDouble(fabric) && fabric.setout.dial ? ` · ${t(lang, "bed.dial")} ${fabric.setout.dial.join("")}` : ""),
+      `${t(lang, "bed.cyl")} ${shown("cyl", fabric.setout.cylinder)}` +
+      (isDouble(fabric) && fabric.setout.dial ? ` · ${t(lang, "bed.dial")} ${shown("dial", fabric.setout.dial)}` : ""),
     note: figures.setoutRepeats ? t(lang, "label.setoutRepeats", { width: sw, repeats: fmt(lang, figures.setoutRepeats, 2) }) : undefined,
   });
   mrows.push({
@@ -166,6 +175,6 @@ export function buildSpec(fabric: Fabric, figures: Figures, issues: Issue[], lan
     missing: figures.missing.map((k) => t(lang, `missing.${k}` as I18nKey)),
     issues: [...issues]
       .sort((a, b) => (a.level === b.level ? 0 : a.level === "error" ? -1 : 1))
-      .map((i) => ({ level: i.level, text: issueText(lang, i) })),
+      .map((i) => ({ level: i.level, text: issueText(lang, i, display) })),
   };
 }

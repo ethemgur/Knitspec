@@ -121,6 +121,7 @@ export function parseSetoutLine(v: unknown): string[] | undefined {
     if (/\s/.test(ch) || ch === "'" || ch === "′" || ch === "’") continue; // dial tracks may be written A′
     if (ch === "-" || ch === "." || ch === "_") out.push(EMPTY);
     else if (/[A-Z]/.test(ch)) out.push(ch);
+    else if (/[1-9]/.test(ch)) out.push(String.fromCharCode(64 + Number(ch))); // butt number 1 = track A
     else return undefined;
   }
   return out.length ? out : undefined;
@@ -137,7 +138,7 @@ function parseStitches(v: unknown, tracks: string[], label: string, issues: Issu
   let letters: string[];
   if (isObj(v)) {
     // { A: K, B: T } form
-    letters = tracks.map((t) => str(v[t]) ?? "M");
+    letters = tracks.map((t) => str(v[t] ?? v[t.charCodeAt(0) - 64] ?? v[`${t}'`] ?? v[`${t}′`]) ?? "M");
   } else {
     const s = str(v);
     if (s === undefined) return undefined;

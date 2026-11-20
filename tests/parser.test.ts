@@ -20,7 +20,9 @@ describe("set-out lines", () => {
     expect(parseSetoutLine("a b")).toEqual(["A", "B"]);
     expect(parseSetoutLine("AA--")).toEqual(["A", "A", "-", "-"]);
     expect(parseSetoutLine("A.B_")).toEqual(["A", "-", "B", "-"]);
-    expect(parseSetoutLine("A1")).toBeUndefined();
+    expect(parseSetoutLine("A#")).toBeUndefined();
+    expect(parseSetoutLine("1234")).toEqual(["A", "B", "C", "D"]); // butt numbers
+    expect(parseSetoutLine("12--")).toEqual(["A", "B", "-", "-"]);
     expect(parseSetoutLine("B'A'")).toEqual(["B", "A"]);
     expect(parseSetoutLine("B′ A′")).toEqual(["B", "A"]);
   });

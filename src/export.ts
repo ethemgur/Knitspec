@@ -2,6 +2,7 @@ import { Figures } from "./calc";
 import { Fabric, isDouble } from "./model";
 import { Lang, t } from "./i18n";
 import { compositionText } from "./render/spec";
+import { DEFAULT_DISPLAY, DisplayOptions, trackLabel } from "./render/options";
 
 export type CsvSeparator = "," | ";";
 
@@ -20,15 +21,21 @@ function cell(v: string | number | undefined, sep: CsvSeparator): string {
  * Cam chart and figures as CSV for Excel and the production tracker.
  * Use ";" for Excel with a Turkish locale (decimal comma), "," otherwise.
  */
-export function toCsv(fabric: Fabric, figures: Figures, lang: Lang, sep: CsvSeparator = ";"): string {
+export function toCsv(
+  fabric: Fabric,
+  figures: Figures,
+  lang: Lang,
+  sep: CsvSeparator = ";",
+  display: DisplayOptions = DEFAULT_DISPLAY,
+): string {
   const lines: string[] = [];
   const row = (...cells: (string | number | undefined)[]) => lines.push(cells.map((c) => cell(c, sep)).join(sep));
 
   const double = isDouble(fabric);
   row(
     t(lang, "label.feeder"),
-    ...(double ? fabric.tracks.dial.map((x) => `${t(lang, "bed.dial")} ${x}′`) : []),
-    ...fabric.tracks.cyl.map((x) => `${t(lang, "bed.cyl")} ${x}`),
+    ...(double ? fabric.tracks.dial.map((x) => `${t(lang, "bed.dial")} ${trackLabel("dial", x, display)}`) : []),
+    ...fabric.tracks.cyl.map((x) => `${t(lang, "bed.cyl")} ${trackLabel("cyl", x, display)}`),
     "yarn",
     "plate",
     "loop_mm",

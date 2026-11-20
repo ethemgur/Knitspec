@@ -1,4 +1,5 @@
 import { Issue } from "./model";
+import { DEFAULT_DISPLAY, DisplayOptions, trackLabel } from "./render/options";
 
 export type Lang = "en" | "tr";
 
@@ -248,9 +249,11 @@ export function fmt(lang: Lang, n: number, digits = 1): string {
   });
 }
 
-export function issueText(lang: Lang, issue: Issue): string {
+export function issueText(lang: Lang, issue: Issue, display: DisplayOptions = DEFAULT_DISPLAY): string {
   const params: Record<string, string | number> = { ...(issue.params ?? {}) };
-  if (issue.params?.bed === "dial" && typeof params.track === "string") params.track = `${params.track}′`;
+  if (typeof params.track === "string") {
+    params.track = trackLabel(issue.params?.bed === "dial" ? "dial" : "cyl", params.track, display);
+  }
   if (typeof params.bed === "string") params.bed = t(lang, `bed.${params.bed}` as Key);
   if (typeof params.field === "string") params.field = t(lang, `field.${params.field}` as Key);
   for (const k of Object.keys(params)) {
