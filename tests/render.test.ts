@@ -162,7 +162,7 @@ describe("textbook notation options", () => {
     expect(trackLabel("cyl", "C", { camStyle: "letters", trackNames: "numbers", trackOrder: "first-top" })).toBe("3");
     expect(trackLabel("dial", "B", { camStyle: "letters", trackNames: "numbers", trackOrder: "first-top" })).toBe("2′");
     const { fabric } = run(fixture("fl-2210-fleece.yaml"));
-    const svg = renderCamChart(fabric!, "en", undefined, { camStyle: "letters", trackNames: "numbers", trackOrder: "first-bottom" });
+    const svg = renderCamChart(fabric!, "en", 1884, { camStyle: "letters", trackNames: "numbers", trackOrder: "first-bottom" });
     const y = (l: string) => Number(svg.match(new RegExp(`y="([\\d.]+)" text-anchor="end"[^>]*>${l}<`))![1]);
     expect(y("1")).toBeGreaterThan(y("4"));
     expect(svg).toContain("1 2 3 4 ×");
