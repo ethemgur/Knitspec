@@ -86,8 +86,10 @@ Y1 = 75 dtex PES
       `
 machine: [[M-DJ]]
 cylinder: A
-dial: A'
-A'  K
+dial: A
+kapak
+A   K
+silindir
 A   K
 `,
       { resolveMachine: () => ({ type: "double-jersey", gauge: 18, dial_gauge: 20 }) },
@@ -126,9 +128,11 @@ describe("interlock gating", () => {
 machine: interlock 72F
 needles: 2256
 cylinder: AB
-dial: A'B'
-A'  K M
-B'  M K
+dial: AB
+kapak
+A   K M
+B   M K
+silindir
 A   K M
 B   M K
 `);

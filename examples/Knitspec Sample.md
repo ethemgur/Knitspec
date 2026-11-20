@@ -18,11 +18,10 @@ machine: SJ 30" E28 96F 25rpm 85% 2 tracks
 needles: 2640
 cylinder: AB
 
-      F1  F2  F3  F4
 A     K   K   K   T
 B     K   T   K   K
-yarn  Y1+Y2
-loop  2.9
+F     Y1+Y2
+L     2.9
 
 Y1 = 75/72 dtex PES
 Y2 = 22 dtex EA draft 3
@@ -44,13 +43,12 @@ machine: SJ 30" E20 96F 22rpm 4 tracks
 needles: 1884
 cylinder: ABCD
 
-      F1  F2  F3  F4
 A     T   K   M   K
 B     M   K   M   K
 C     M   K   T   K
 D     M   K   M   K
-yarn  Y2  Y1  Y2  Y1
-loop  1.6 2.7 1.6 2.7
+F     Y2  Y1  Y2  Y1
+L     1.6 2.7 1.6 2.7
 
 Y1 = Ne 30/1 CO
 Y2 = Ne 20/1 CO
@@ -68,13 +66,14 @@ structure: rib-2x2
 machine: rib 30" E18 60F 22rpm
 needles: 1692
 cylinder: AA--
-dial: -A'A'-
+dial: -AA-
 
-      F1
-A'    K
+kapak
 A     K
-yarn  Y1
-loop  3.0
+silindir
+A     K
+F     Y1
+L     3.0
 
 Y1 = Ne 30/1 CO
 grey: 14 cpc 9 wpc
@@ -91,15 +90,16 @@ structure: interlock
 machine: interlock 30" E24 72F 24rpm
 needles: 2256
 cylinder: AB
-dial: B'A'
+dial: BA
 
-      F1  F2
-A'    K   M
-B'    M   K
+kapak
 A     K   M
 B     M   K
-yarn  Y1
-loop  1.7
+silindir
+A     K   M
+B     M   K
+F     Y1
+L     1.7
 
 Y1 = Ne 40/1 CO
 grey: 16 cpc 12 wpc
@@ -122,12 +122,11 @@ structure: broken-on-purpose
 machine: SJ 30" E28 96F 25rpm
 cylinder: ABC
 
-      F1  F2  F3  F4  F5
 A     T   T   T   K   K
 B     M   M   M   M   M
 C     K   K   K   K   K
-yarn  Y1
-loop  29
+F     Y1
+L     29
 
 Y1 = 75 dtex PES
 ```

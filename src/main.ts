@@ -56,7 +56,7 @@ export default class KnitspecPlugin extends Plugin {
       checkCallback: (checking) =>
         this.withActiveFabric(checking, async (file, res) => {
           if (!res.fabric || !res.figures) return;
-          const csv = toCsv(res.fabric, res.figures, this.settings.language, this.settings.csvSeparator, this.settings.display);
+          const csv = toCsv(res.fabric, res.figures, this.settings.language, this.settings.csvSeparator);
           await this.saveFile(file, `${this.baseName(file, res)}.csv`, csv);
         }),
     });
@@ -197,7 +197,7 @@ export default class KnitspecPlugin extends Plugin {
     }
     const fabric = res.fabric;
     const figures = res.figures;
-    const spec = buildSpec(fabric, figures, res.issues, lang, this.settings.display);
+    const spec = buildSpec(fabric, figures, res.issues, lang);
 
     const header = card.createDiv({ cls: "knitspec-header" });
     header.createSpan({ cls: "knitspec-title", text: spec.title || "Knitspec" });
@@ -266,16 +266,16 @@ export default class KnitspecPlugin extends Plugin {
       svgButtons.push(svgBtn, pngBtn);
       const csvBtn = toolbar.createEl("button", { cls: "knitspec-tool", text: t(lang, "button.csv") });
       csvBtn.addEventListener("click", () =>
-        void this.saveFile(note, `${base}.csv`, toCsv(fabric, figures, lang, this.settings.csvSeparator, this.settings.display)),
+        void this.saveFile(note, `${base}.csv`, toCsv(fabric, figures, lang, this.settings.csvSeparator)),
       );
     }
     show(active);
   }
 
   private renderIssues(parent: HTMLElement, res: PipelineResult, lang: Lang): void {
-    const spec = res.fabric && res.figures ? buildSpec(res.fabric, res.figures, res.issues, lang, this.settings.display) : undefined;
+    const spec = res.fabric && res.figures ? buildSpec(res.fabric, res.figures, res.issues, lang) : undefined;
     const list = parent.createEl("ul", { cls: "knitspec-issues" });
-    const items = spec ? spec.issues : res.issues.map((i) => ({ level: i.level, text: issueText(lang, i, this.settings.display) }));
+    const items = spec ? spec.issues : res.issues.map((i) => ({ level: i.level, text: issueText(lang, i) }));
     for (const it of items) {
       const li = list.createEl("li", { cls: `knitspec-issue knitspec-issue-${it.level}` });
       li.createSpan({ cls: "knitspec-issue-level", text: t(lang, `issue.${it.level}` as I18nKey) });

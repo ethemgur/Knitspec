@@ -2,7 +2,7 @@ import { Figures } from "./calc";
 import { Fabric, isDouble } from "./model";
 import { Lang, t } from "./i18n";
 import { compositionText } from "./render/spec";
-import { DEFAULT_DISPLAY, DisplayOptions, trackLabel } from "./render/options";
+import { setoutText, trackLabel } from "./render/options";
 
 export type CsvSeparator = "," | ";";
 
@@ -26,7 +26,6 @@ export function toCsv(
   figures: Figures,
   lang: Lang,
   sep: CsvSeparator = ";",
-  display: DisplayOptions = DEFAULT_DISPLAY,
 ): string {
   const lines: string[] = [];
   const row = (...cells: (string | number | undefined)[]) => lines.push(cells.map((c) => cell(c, sep)).join(sep));
@@ -34,8 +33,8 @@ export function toCsv(
   const double = isDouble(fabric);
   row(
     t(lang, "label.feeder"),
-    ...(double ? fabric.tracks.dial.map((x) => `${t(lang, "bed.dial")} ${trackLabel("dial", x, display)}`) : []),
-    ...fabric.tracks.cyl.map((x) => `${t(lang, "bed.cyl")} ${trackLabel("cyl", x, display)}`),
+    ...(double ? fabric.tracks.dial.map((x) => `${t(lang, "bed.dial")} ${trackLabel(fabric, "dial", x)}`) : []),
+    ...fabric.tracks.cyl.map((x) => `${t(lang, "bed.cyl")} ${trackLabel(fabric, "cyl", x)}`),
     "yarn",
     "plate",
     "loop_mm",
@@ -56,8 +55,8 @@ export function toCsv(
   row("feeders", fabric.machine.feeders);
   row("rpm", fabric.machine.rpm);
   row("needles", figures.needles?.value);
-  row("setout_cylinder", fabric.setout.cylinder.join(""));
-  if (double) row("setout_dial", fabric.setout.dial?.join(""));
+  row("setout_cylinder", setoutText(fabric, "cyl", fabric.setout.cylinder));
+  if (double) row("setout_dial", fabric.setout.dial ? setoutText(fabric, "dial", fabric.setout.dial) : undefined);
   row("production", figures.production?.kgPerHour, "kg/h");
   row("composition", compositionText(figures, "en"));
   row("gsm_grey_entered", fabric.grey.gsm, "g/m2");

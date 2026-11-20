@@ -332,6 +332,13 @@ export function parseFabric(input: unknown, opts: ParseOptions = {}): ParseResul
     grey: parseState(fabricRaw.grey),
     finished: parseState(fabricRaw.finished),
     orderKg: parseNumber(input.order_kg ?? (isObj(input.order) ? input.order.kg : input.order)),
+    labels: isObj(input.labels) ? (input.labels as Fabric["labels"]) : undefined,
+    grid: Array.isArray(input.grid)
+      ? (input.grid as { bed: "cyl" | "dial"; track: string; label: string; cells: string[] }[]).map((r) => ({
+          ...r,
+          cells: r.cells.map((c): Stitch => STITCH_ALIASES[c.toUpperCase()] ?? "M"),
+        }))
+      : undefined,
   };
   return { fabric, issues };
 }

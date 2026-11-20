@@ -63,7 +63,55 @@ describe("whole blocks", () => {
     expect(fabric!.grey).toMatchObject({ gsm: 165, width: 172 });
   });
 
-  it("reads kapak rows (A') and the interlock dial set-out", () => {
+  it("reads the factory layout: named tracks, rows top-down, F row", () => {
+    const { fabric, issues } = run(`article: K1825
+structure: ABD Pike İnterlok
+machine: SJ 4 tracks 28F
+
+2' M K M K
+2  M K M K
+1' K T K M
+1  K M K T
+F  Y1 Y2 Y1 Y2
+
+Y1 = 40/1 Penye
+Y2 = 70/36 Poly
+`);
+    expect(fabric!.machine).toMatchObject({ type: "single-jersey", tracks: 4, feeders: 28 });
+    expect(fabric!.grid!.map((r) => r.label)).toEqual(["2'", "2", "1'", "1"]);
+    // Set-out not given: assumed in natural order 1 1' 2 2'.
+    expect(issues).toEqual([{ level: "warning", code: "setoutAssumed", params: { bed: "cyl", setout: "1 1' 2 2'" } }]);
+    // F2 down the column: 2' K, 2 K, 1' T, 1 M
+    const f2 = fabric!.grid!.map((r) => r.cells[1]).join("");
+    expect(f2).toBe("KKTM");
+    expect(fabric!.feeds[2]).toMatchObject({ yarn: "Y2" });
+    expect(fabric!.yarns.Y1.tex).toBeCloseTo(590.5 / 40);
+  });
+
+  it("set-out by track names, in needle order", () => {
+    const { fabric, issues } = run(`
+cylinder: 1 1' 2 2'
+2' M K
+2  M K
+1' K T
+1  K M
+F  Y1
+Y1 = 40/1 Penye
+`);
+    expect(issues).toEqual([]);
+    const names = fabric!.setout.cylinder.map((t) => fabric!.labels!.cyl[t]);
+    expect(names).toEqual(["1", "1'", "2", "2'"]);
+  });
+
+  it("an apostrophe is part of the name, not the kapak", () => {
+    const { fabric } = run(`1' K
+1 K
+F Y1
+Y1 = 30/1 Penye`);
+    expect(fabric!.machine.type).toBe("single-jersey");
+  });
+
+  it("reads kapak and silindir sections and the interlock dial set-out", () => {
     const { fabric, issues } = run(fixture("il-3300-interlock"));
     expect(issues).toEqual([]);
     expect(fabric!.machine).toMatchObject({ type: "double-jersey", gating: "interlock" });
@@ -94,7 +142,7 @@ B  M M
 C  K T
 `);
     expect(fabric!.setout.cylinder).toEqual(["A", "C"]);
-    expect(issues).toContainEqual({ level: "warning", code: "setoutAssumed", params: { bed: "cyl", setout: "AC" } });
+    expect(issues).toContainEqual({ level: "warning", code: "setoutAssumed", params: { bed: "cyl", setout: "A C" } });
   });
 
   it("flags rows of the wrong length, missing rows and stray lines", () => {

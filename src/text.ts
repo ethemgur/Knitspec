@@ -211,14 +211,40 @@ export function parseYarnDef(value: string): { count: string; material: string; 
   return { count: count ? `${count} ${unit}` : "", material, draft };
 }
 
-const TRACK_LABEL = /^([A-Za-z]|[1-9])(['′’]?):?$/;
+type BedId = "cyl" | "dial";
 
-function trackOf(label: string): { bed: "cyl" | "dial"; track: string } | undefined {
+/** A track name as written: 1, 1', 2'', A, B′ … (apostrophes normalised to '). */
+const TRACK_LABEL = /^([A-Za-z]|\d)(['′’]*):?$/;
+
+export function normLabel(label: string): string | undefined {
   const m = label.match(TRACK_LABEL);
-  if (!m) return undefined;
-  const ch = m[1].toUpperCase();
-  const track = /[1-9]/.test(ch) ? String.fromCharCode(64 + Number(ch)) : ch;
-  return { bed: m[2] ? "dial" : "cyl", track };
+  return m ? m[1].toUpperCase() + "'".repeat(m[2].length) : undefined;
+}
+
+/** Natural order for track names: 1, 1', 2, 2' / A, B, C. */
+function labelKey(label: string): [number, number] {
+  const base = label.replace(/'+$/, "");
+  const n = /^\d$/.test(base) ? Number(base) : base.charCodeAt(0);
+  return [n, label.length - base.length];
+}
+const byLabel = (a: string, b: string) => {
+  const [x1, y1] = labelKey(a);
+  const [x2, y2] = labelKey(b);
+  return x1 - x2 || y1 - y2;
+};
+
+/** Split a set-out into track names and empty slots: "1 1' 2 2'", "11'22'", "AA--", "B'A'". */
+export function splitSetout(s: string): string[] | undefined {
+  const out: string[] = [];
+  const re = /\s*(?:([-._])|([A-Za-z]|\d)(['′’]*))/gy;
+  let m: RegExpExecArray | null;
+  let pos = 0;
+  while ((m = re.exec(s))) {
+    pos = re.lastIndex;
+    if (m[1]) out.push("-");
+    else out.push(m[2].toUpperCase() + "'".repeat(m[3].length));
+  }
+  return s.slice(pos).trim() === "" && out.length ? out : undefined;
 }
 
 /** Split cam cells: "M K M K", "MKMK" or "M,K,M,K". */
@@ -227,18 +253,42 @@ function camCells(rest: string[]): string[] {
   return rest.flatMap((c) => c.split(",")).filter(Boolean);
 }
 
+const isStitch = (c: string) => /^[KTMktm.\-]$/.test(c);
+const isYarnCell = (c: string) => /^(Y\d+(\+Y\d+)?|-)$/i.test(c);
+const isNumCell = (c: string) => /^(\d+(?:[.,]\d+)?(mm)?|-)$/i.test(c);
+
+const SECTIONS: Record<string, BedId> = { kapak: "dial", dial: "dial", silindir: "cyl", cylinder: "cyl" };
+
+interface GridRow {
+  bed: BedId;
+  label: string;
+  cells: string[];
+  /** Internal track id (a letter) used by the model. */
+  track?: string;
+}
+
 export function parseKnitText(src: string): TextResult {
   const issues: Issue[] = [];
   const fields: Record<string, string> = {};
   const yarnDefs: Record<string, ReturnType<typeof parseYarnDef>> = {};
-  const grid: { bed: "cyl" | "dial"; track: string; cells: string[]; line: number }[] = [];
+  const grid: GridRow[] = [];
   const feedRows: Partial<Record<"yarn" | "loop" | "runin", string[]>> = {};
   let columns: number | undefined;
+  let bed: BedId = "cyl";
+  let sawSection = false;
 
   src.split(/\r?\n/).forEach((rawLine, idx) => {
     const line = stripComment(rawLine).trim();
     if (!line) return;
     const lineNo = idx + 1;
+
+    // Section line: "kapak" / "silindir" (rows below belong to that bed).
+    const sec = SECTIONS[lower(line.replace(/:$/, ""))];
+    if (sec) {
+      bed = sec;
+      sawSection = true;
+      return;
+    }
 
     // Yarn definition: "Y1 = 40/1 Penye" or "Y1: 40/1 Penye".
     let m = line.match(/^(Y\d+)\s*[=:]\s*(.+)$/i);
@@ -255,6 +305,8 @@ export function parseKnitText(src: string): TextResult {
     }
 
     const tokens = line.split(/\s+/);
+    const rest = tokens.slice(1).flatMap((c) => c.split(",")).filter(Boolean);
+    const head = lower(tokens[0].replace(/:$/, ""));
 
     // Feeder header: "F1 F2 F3 F4" (optionally after a label).
     const fCols = tokens.filter((t) => /^F\d+$/i.test(t));
@@ -263,19 +315,30 @@ export function parseKnitText(src: string): TextResult {
       return;
     }
 
-    // Feed rows: yarn / loop / runin.
-    for (const len of [2, 1]) {
-      const key = lower(tokens.slice(0, len).join(" ").replace(/:$/, ""));
-      if (FEED_ROWS[key] && tokens.length > len) {
-        feedRows[FEED_ROWS[key]] = tokens.slice(len).flatMap((c) => c.split(",")).filter(Boolean);
-        return;
-      }
+    // Feed rows: "F Y1 Y2 …" (yarn per feeder), "L 2.9" (loop), or the words.
+    if (rest.length && (head === "f" || FEED_ROWS[head] === "yarn") && rest.every(isYarnCell)) {
+      feedRows.yarn = rest;
+      return;
+    }
+    if (rest.length && (head === "l" || FEED_ROWS[head] === "loop") && rest.every(isNumCell)) {
+      feedRows.loop = rest;
+      return;
+    }
+    if (rest.length && FEED_ROWS[head] === "runin" && rest.every(isNumCell)) {
+      feedRows.runin = rest;
+      return;
+    }
+    const two = lower(tokens.slice(0, 2).join(" ").replace(/:$/, ""));
+    if (FEED_ROWS[two] && tokens.length > 2) {
+      feedRows[FEED_ROWS[two]] = tokens.slice(2).flatMap((c) => c.split(",")).filter(Boolean);
+      return;
     }
 
-    // Track row: "A  M K M K", "B'  KTKT", "1: M K".
-    const tr = trackOf(tokens[0]);
-    if (tr && tokens.length > 1) {
-      grid.push({ ...tr, cells: camCells(tokens.slice(1)), line: lineNo });
+    // Track row: "2'  M K M K", "1  KMKT", "A: K T".
+    const label = normLabel(tokens[0]);
+    const cells = camCells(tokens.slice(1));
+    if (label && cells.length && cells.every(isStitch)) {
+      grid.push({ bed, label, cells });
       return;
     }
 
@@ -294,11 +357,7 @@ export function parseKnitText(src: string): TextResult {
   const width = columns ?? grid[0].cells.length;
   for (const row of grid) {
     if (row.cells.length !== width) {
-      issues.push({
-        level: "error",
-        code: "gridWidth",
-        params: { track: row.track, bed: row.bed, got: row.cells.length, want: width },
-      });
+      issues.push({ level: "error", code: "gridWidth", params: { track: row.label, bed: row.bed, got: row.cells.length, want: width } });
     }
   }
 
@@ -312,50 +371,82 @@ export function parseKnitText(src: string): TextResult {
   const hasDial = grid.some((r) => r.bed === "dial") || !!fields.dial;
   if (!machine.type && !machine.ref) machine.type = hasDial ? "double-jersey" : "single-jersey";
   raw.machine = machine;
+  if (!sawSection && machine.type === "double-jersey") issues.push({ level: "error", code: "noKapakSection" });
 
-  // Set-out: given, or the tracks that take yarn, in row order.
-  const usedTracks = (bed: "cyl" | "dial") =>
-    grid.filter((r) => r.bed === bed && r.cells.some((c) => /[KT]/i.test(c))).map((r) => r.track);
-  const setout: Obj = {};
-  for (const bed of ["cyl", "dial"] as const) {
-    const given = fields[bed === "cyl" ? "cylinder" : "dial"];
-    if (given) setout[bed === "cyl" ? "cylinder" : "dial"] = given;
-    else if (bed === "cyl" || hasDial) {
-      const used = usedTracks(bed);
+  // Internal track ids: letters as written if every name is a letter, else A, B, C … in written order.
+  const labels: Record<BedId, Record<string, string>> = { cyl: {}, dial: {} };
+  for (const b of ["cyl", "dial"] as const) {
+    const rows = grid.filter((r) => r.bed === b);
+    const seen = new Set<string>();
+    for (const r of rows) {
+      if (seen.has(r.label)) issues.push({ level: "warning", code: "trackTwice", params: { bed: b, track: r.label } });
+      seen.add(r.label);
+    }
+    const allLetters = rows.every((r) => /^[A-Z]$/.test(r.label));
+    rows.forEach((r, i) => {
+      r.track = allLetters ? r.label : String.fromCharCode(65 + i);
+      labels[b][r.track] = r.label;
+    });
+  }
+  const idOf = (b: BedId, label: string) => grid.find((r) => r.bed === b && r.label === label)?.track;
+  raw.labels = labels;
+  raw.grid = grid.map((r) => ({ bed: r.bed, track: r.track, label: r.label, cells: r.cells }));
+
+  // Set-out: given (by track name), or the tracks that knit, in natural order.
+  const setoutLabels: Record<BedId, string[] | undefined> = { cyl: undefined, dial: undefined };
+  for (const b of ["cyl", "dial"] as const) {
+    const given = fields[b === "cyl" ? "cylinder" : "dial"];
+    if (given) {
+      const parts = splitSetout(given);
+      if (!parts) issues.push({ level: "error", code: "setoutUnreadable", params: { bed: b, value: given } });
+      setoutLabels[b] = parts;
+    } else if (b === "cyl" || hasDial) {
+      const used = grid
+        .filter((r) => r.bed === b && r.cells.some((c) => /[KT]/i.test(c)))
+        .map((r) => r.label)
+        .sort(byLabel);
       if (used.length) {
-        setout[bed === "cyl" ? "cylinder" : "dial"] = used.join("");
-        issues.push({ level: "warning", code: "setoutAssumed", params: { bed, setout: used.join("") } });
+        setoutLabels[b] = used;
+        issues.push({ level: "warning", code: "setoutAssumed", params: { bed: b, setout: used.join(" ") } });
       }
     }
+  }
+  const setout: Obj = {};
+  for (const b of ["cyl", "dial"] as const) {
+    const parts = setoutLabels[b];
+    if (!parts) continue;
+    const ids: string[] = [];
+    for (const p of parts) {
+      if (p === "-") {
+        ids.push("-");
+        continue;
+      }
+      const id = idOf(b, p);
+      if (!id) {
+        issues.push({ level: "error", code: "camRowMissing", params: { bed: b, track: p } });
+        continue;
+      }
+      ids.push(id);
+    }
+    if (ids.length) setout[b === "cyl" ? "cylinder" : "dial"] = ids.join("");
   }
   raw.setout = setout;
 
-  // Tracks named in the set-out, so cam strings can follow them.
-  const setoutTracks = (bed: "cyl" | "dial"): string[] => {
-    const s = String(setout[bed === "cyl" ? "cylinder" : "dial"] ?? "").toUpperCase();
-    const letters = [...s]
-      .filter((c) => /[A-Z1-9]/.test(c))
-      .map((c) => (/[1-9]/.test(c) ? String.fromCharCode(64 + Number(c)) : c));
-    return [...new Set(letters)].sort();
-  };
-  const rowFor = (bed: "cyl" | "dial", track: string) => grid.find((r) => r.bed === bed && r.track === track);
-
-  for (const bed of ["cyl", "dial"] as const) {
-    const inSetout = setoutTracks(bed);
-    for (const r of grid.filter((g) => g.bed === bed)) {
-      if (!inSetout.includes(r.track) && r.cells.some((c) => /[KT]/i.test(c))) {
-        issues.push({ level: "warning", code: "trackNotInSetout", params: { bed, track: r.track } });
-      }
-    }
-    for (const tr of inSetout) {
-      if (!rowFor(bed, tr)) issues.push({ level: "error", code: "camRowMissing", params: { bed, track: tr } });
+  // Rows that knit but have no needles in the set-out.
+  for (const r of grid) {
+    const ids = String(setout[r.bed === "cyl" ? "cylinder" : "dial"] ?? "");
+    if (r.track && !ids.includes(r.track) && r.cells.some((c) => /[KT]/i.test(c))) {
+      issues.push({ level: "warning", code: "trackNotInSetout", params: { bed: r.bed, track: r.label } });
     }
   }
 
-  const camString = (bed: "cyl" | "dial", f: number) =>
-    setoutTracks(bed)
-      .map((tr) => {
-        const c = rowFor(bed, tr)?.cells[f];
+  // Cam strings per feeder, in the model's track order (sorted ids of the set-out).
+  const setoutIds = (b: BedId) =>
+    [...new Set([...String(setout[b === "cyl" ? "cylinder" : "dial"] ?? "")].filter((c) => c !== "-"))].sort();
+  const camString = (b: BedId, f: number) =>
+    setoutIds(b)
+      .map((id) => {
+        const c = grid.find((r) => r.bed === b && r.track === id)?.cells[f];
         return c === undefined || c === "-" || c === "." ? "M" : c.toUpperCase();
       })
       .join("");

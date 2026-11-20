@@ -2,6 +2,7 @@ import { calculate, CalcOptions, DEFAULT_CALC, Figures } from "./calc";
 import { Fabric, Issue } from "./model";
 import { parseFabric, ParseOptions } from "./parser";
 import { parseKnitText } from "./text";
+import { trackLabel } from "./render/options";
 import { DEFAULT_VALIDATION, validate, ValidationOptions } from "./validate";
 
 export interface PipelineResult {
@@ -22,11 +23,13 @@ export function runPipeline(src: string, opts: PipelineOptions = {}): PipelineRe
   const parsed = parseFabric(text.raw, opts);
   if (!parsed.fabric) return { issues: [...text.issues, ...parsed.issues] };
   const figures = calculate(parsed.fabric, opts.calc ?? DEFAULT_CALC);
-  const issues = [
-    ...text.issues,
-    ...parsed.issues,
-    ...validate(parsed.fabric, figures, opts.validation ?? DEFAULT_VALIDATION),
-  ];
+  // Model checks name tracks by internal id; show them as written in the block.
+  const named = [...parsed.issues, ...validate(parsed.fabric, figures, opts.validation ?? DEFAULT_VALIDATION)].map((i) => {
+    const bed = i.params?.bed === "dial" ? "dial" : "cyl";
+    const track = i.params?.track;
+    return typeof track === "string" ? { ...i, params: { ...i.params, track: trackLabel(parsed.fabric!, bed, track) } } : i;
+  });
+  const issues = [...text.issues, ...named];
   return { fabric: parsed.fabric, figures, issues };
 }
 

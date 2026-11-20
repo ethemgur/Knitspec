@@ -1,6 +1,6 @@
 import { Bed, EMPTY, Fabric, isDouble, Stitch } from "../model";
 import { fmt, Lang, t } from "../i18n";
-import { DEFAULT_DISPLAY, DisplayOptions, trackLabel } from "./options";
+import { DEFAULT_DISPLAY, DisplayOptions, setoutText, trackLabel } from "./options";
 import { esc, STITCH_COLOUR, svgRoot, tag, text } from "./svg";
 
 const CELL_W = 36;
@@ -61,7 +61,7 @@ function repeatsToDraw(width: number): number {
  * letter, the first repeat bracketed, and the repeat count around the bed.
  * Dial needles sit half a box over in rib gating, directly above in interlock.
  */
-function setoutStrip(fabric: Fabric, lang: Lang, needles: number | undefined, top: number, o: DisplayOptions): { svg: string[]; width: number; height: number } {
+function setoutStrip(fabric: Fabric, lang: Lang, needles: number | undefined, top: number): { svg: string[]; width: number; height: number } {
   const beds: Bed[] = isDouble(fabric) && fabric.setout.dial ? ["dial", "cyl"] : ["cyl"];
   const out: string[] = [text(8, top + 10, t(lang, "tab.setout"), { "font-weight": 600, fill: "currentColor" })];
   let width = 0;
@@ -89,7 +89,7 @@ function setoutStrip(fabric: Fabric, lang: Lang, needles: number | undefined, to
           "stroke-opacity": empty ? 0.3 : 0.45,
           "stroke-dasharray": empty ? "2 2" : undefined,
         }),
-        text(x + SO_CELL / 2, y + SO_ROW_H / 2 + 4, empty ? "–" : trackLabel(bed, letter, o), {
+        text(x + SO_CELL / 2, y + SO_ROW_H / 2 + 4, empty ? "–" : trackLabel(fabric, bed, letter), {
           "text-anchor": "middle",
           fill: "currentColor",
           "font-weight": empty ? undefined : 600,
@@ -101,7 +101,7 @@ function setoutStrip(fabric: Fabric, lang: Lang, needles: number | undefined, to
     out.push(
       tag("rect", { x: x0, y: y + 1, width: set.length * SO_CELL, height: SO_ROW_H - 2, rx: 3, fill: "none", stroke: REPEAT_COLOUR, "stroke-width": 1.5 }),
     );
-    const shown = set.map((l) => (l === EMPTY ? l : trackLabel(bed, l, o))).join(o.trackNames === "numbers" ? " " : "");
+    const shown = setoutText(fabric, bed, set);
     const info = needles
       ? `${shown} × ${fmt(lang, needles / set.length, 2)} ${t(lang, "label.repeats")}`
       : shown;
@@ -116,13 +116,13 @@ function setoutStrip(fabric: Fabric, lang: Lang, needles: number | undefined, to
 /**
  * Cam chart with the needle set-out on top: everything a master needs to set
  * the machine in one picture. Laid out like a set-up sheet (çelik dizilimi):
- * one row per track — dial (kapak, A′ B′) rows above cylinder (silindir) rows —
- * (track names, row order and cam style follow the display options)
- * and one column per feeder, with the yarn and loop length under each feeder.
+ * the cam rows exactly as written in the block (names and order kept; kapak
+ * rows above silindir rows), one column per feeder, with the yarn and loop
+ * length under each feeder. Rows whose track has no needles are dimmed.
  */
 export function renderCamChart(fabric: Fabric, lang: Lang, needles?: number, o: DisplayOptions = DEFAULT_DISPLAY): string {
   const beds: Bed[] = isDouble(fabric) ? ["dial", "cyl"] : ["cyl"];
-  const strip = setoutStrip(fabric, lang, needles, 4, o);
+  const strip = setoutStrip(fabric, lang, needles, 4);
   const body: string[] = [...strip.svg];
 
   const cols = fabric.cams.length;
@@ -130,7 +130,17 @@ export function renderCamChart(fabric: Fabric, lang: Lang, needles?: number, o: 
   const GROUP_GAP = 8;
   const gridTop = strip.height + 18;
   const top = gridTop + 22; // below the feeder header
-  const trackRows = beds.reduce((a, b) => a + fabric.tracks[b].length, 0);
+  // Rows as written, or (without a written grid) one row per set-out track.
+  const rowsOf = (bed: Bed) =>
+    fabric.grid
+      ? fabric.grid.filter((r) => r.bed === bed)
+      : fabric.tracks[bed].map((tr, i) => ({
+          bed,
+          track: tr,
+          label: tr,
+          cells: fabric.cams.map((row) => (bed === "cyl" ? row.cyl : row.dial ?? [])[i] ?? "M"),
+        }));
+  const trackRows = beds.reduce((a, b) => a + rowsOf(b).length, 0);
   const gridH = trackRows * CELL_H + GROUP_GAP * (beds.length - 1);
   const feedTop = top + gridH + 6;
   const hasLoop = fabric.cams.some((r) => fabric.feeds[r.feeder]?.loop !== undefined);
@@ -148,20 +158,18 @@ export function renderCamChart(fabric: Fabric, lang: Lang, needles?: number, o: 
   // Track rows, grouped by bed.
   let y = top;
   for (const bed of beds) {
-    // Cam columns follow fabric.tracks order; rows may be shown first-track-at-bottom.
-    const order = fabric.tracks[bed].map((tr, i) => ({ tr, i }));
-    if (o.trackOrder === "first-bottom") order.reverse();
-    const tracks = fabric.tracks[bed];
+    const rows = rowsOf(bed);
     body.push(text(8, y + CELL_H / 2 + 4, t(lang, `bed.${bed}`), { "font-weight": 600, fill: "currentColor" }));
-    order.forEach(({ tr, i }, rowIdx) => {
+    rows.forEach((r, rowIdx) => {
       const ry = y + rowIdx * CELL_H;
-      body.push(text(LEFT - 8, ry + CELL_H / 2 + 4, trackLabel(bed, tr, o), { "text-anchor": "end", fill: "currentColor", opacity: 0.8 }));
-      fabric.cams.forEach((row, c) => {
-        const cams = bed === "cyl" ? row.cyl : row.dial ?? [];
-        body.push(cell(LEFT + c * CELL_W, ry, cams[i] ?? "M", o));
-      });
+      const inSetout = fabric.tracks[bed].includes(r.track);
+      const cells = r.cells.map((s, c) => cell(LEFT + c * CELL_W, ry, s, o)).join("");
+      body.push(
+        text(LEFT - 8, ry + CELL_H / 2 + 4, r.label, { "text-anchor": "end", fill: "currentColor", opacity: 0.8 }),
+        inSetout ? cells : tag("g", { opacity: 0.4 }, cells),
+      );
     });
-    y += tracks.length * CELL_H + GROUP_GAP;
+    y += rows.length * CELL_H + GROUP_GAP;
   }
 
   // Yarn and loop length under each feeder.

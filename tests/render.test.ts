@@ -4,7 +4,6 @@ import { toCsv } from "../src/export";
 import { issueText } from "../src/i18n";
 import { findKnitBlock } from "../src/pipeline";
 import { knitLoop, tuckLoop } from "../src/render/diagram";
-import { trackLabel } from "../src/render/options";
 import { renderCamChart } from "../src/render/camChart";
 import { renderDiagram } from "../src/render/diagram";
 import { buildSpec } from "../src/render/spec";
@@ -50,7 +49,7 @@ describe("SVG renderers", () => {
     const svg = renderCamChart(fabric!, "en", figures!.needles!.value);
     expect(svg).toContain("Needle set-out");
     expect(svg).toContain("AA-- × 423 repeats");
-    expect(svg).toContain("-A′A′- × 423 repeats");
+    expect(svg).toContain("-AA- × 423 repeats");
     expect(renderCamChart(fabric!, "tr", 1692)).toContain("× 423 rapor");
   });
 
@@ -124,14 +123,39 @@ describe("export", () => {
 });
 
 describe("cam chart layout", () => {
-  it("rows are tracks (dial with apostrophe, above cylinder), columns are feeders", () => {
+  it("shows rows exactly as written: names, order, kapak above silindir", () => {
     const { fabric } = run(fixture("il-3300-interlock"));
     const svg = renderCamChart(fabric!, "tr");
     const y = (label: string) => Number(svg.match(new RegExp(`y="([\\d.]+)"[^>]*>${label}<`))![1]);
     expect(y("Kapak")).toBeLessThan(y("Silindir"));
-    expect(svg).toContain(">A′<");
-    expect(svg).toContain(">B′<");
     expect(svg).toContain(">İplik<");
+  });
+
+  it("keeps the factory's track names and top-down order", () => {
+    const { fabric, figures } = run(`2' M K M K
+2  M K M K
+1' K T K M
+1  K M K T
+F  Y1 Y2 Y1 Y2
+Y1 = 40/1 Penye
+Y2 = 70/36 Poly
+machine: SJ 28F
+needles: 2640`);
+    const svg = renderCamChart(fabric!, "en", figures!.needles!.value);
+    const y = (label: string) => Number(svg.match(new RegExp(`y="([\\d.]+)" text-anchor="end"[^>]*>${label}<`))![1]);
+    expect(y("2'")).toBeLessThan(y("2"));
+    expect(y("2")).toBeLessThan(y("1'"));
+    expect(y("1'")).toBeLessThan(y("1"));
+    expect(svg).toContain("1 1' 2 2' × 660 repeats");
+  });
+
+  it("dims rows whose track has no needles", () => {
+    const { fabric } = run(`cylinder: 1
+2 M M
+1 K K
+F Y1
+Y1 = 30/1 Penye`);
+    expect(renderCamChart(fabric!, "en")).toContain('<g opacity="0.4">');
   });
 });
 
@@ -156,18 +180,9 @@ describe("textbook notation options", () => {
 
   it("cam symbols replace letters when chosen", () => {
     const { fabric } = run(fixture("sp-1024-single-pique"));
-    const svg = renderCamChart(fabric!, "en", undefined, { camStyle: "symbols", trackNames: "letters", trackOrder: "first-top" });
+    const svg = renderCamChart(fabric!, "en", undefined, { camStyle: "symbols" });
     expect(svg).toContain("<polyline");
     expect(svg).not.toMatch(/font-weight="600"[^>]*>K</);
   });
 
-  it("tracks can be numbered and ordered first-at-bottom", () => {
-    expect(trackLabel("cyl", "C", { camStyle: "letters", trackNames: "numbers", trackOrder: "first-top" })).toBe("3");
-    expect(trackLabel("dial", "B", { camStyle: "letters", trackNames: "numbers", trackOrder: "first-top" })).toBe("2′");
-    const { fabric } = run(fixture("fl-2210-fleece"));
-    const svg = renderCamChart(fabric!, "en", 1884, { camStyle: "letters", trackNames: "numbers", trackOrder: "first-bottom" });
-    const y = (l: string) => Number(svg.match(new RegExp(`y="([\\d.]+)" text-anchor="end"[^>]*>${l}<`))![1]);
-    expect(y("1")).toBeGreaterThan(y("4"));
-    expect(svg).toContain("1 2 3 4 ×");
-  });
 });

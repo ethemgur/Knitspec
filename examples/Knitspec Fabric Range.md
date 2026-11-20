@@ -17,10 +17,9 @@ machine: SJ 30" E28 96F 28rpm 85%
 needles: 2640
 cylinder: A
 
-      F1
 A     K
-yarn  Y1
-loop  2.75
+F     Y1
+L     2.75
 
 Y1 = Ne 30/1 CO
 finished: 150 gsm 180 cm
@@ -38,13 +37,12 @@ machine: SJ 30" E20 96F 22rpm 85% 4 tracks
 needles: 1884
 cylinder: ABCD
 
-      F1  F2  F3  F4
 A     T   K   M   K
 B     M   K   M   K
 C     M   K   T   K
 D     M   K   M   K
-yarn  Y2  Y1  Y2  Y1
-loop  1.6 2.7 1.6 2.7
+F     Y2  Y1  Y2  Y1
+L     1.6 2.7 1.6 2.7
 
 Y1 = Ne 30/1 CO
 Y2 = Ne 20/1 CO
@@ -63,13 +61,12 @@ machine: SJ 30" E20 96F 20rpm 85% 4 tracks
 needles: 1884
 cylinder: ABCD
 
-      F1  F2  F3  F4  F5  F6
 A     T   K   K   M   K   K
 B     M   K   K   M   K   K
 C     M   K   K   T   K   K
 D     M   K   K   M   K   K
-yarn  Y3  Y2  Y1  Y3  Y2  Y1
-loop  1.6 2.4 2.8 1.6 2.4 2.8
+F     Y3  Y2  Y1  Y3  Y2  Y1
+L     1.6 2.4 2.8 1.6 2.4 2.8
 
 Y1 = Ne 30/1 CO
 Y2 = 75/36 dtex PES
@@ -87,13 +84,14 @@ status: template-unverified
 structure: ribana-1x1
 machine: rib 30" E18 60F 22rpm 85%
 cylinder: A
-dial: A'
+dial: A
 
-      F1
-A'    K
+kapak
 A     K
-yarn  Y1
-loop  3.0
+silindir
+A     K
+F     Y1
+L     3.0
 
 Y1 = Ne 30/1 CO
 finished: 220 gsm 120 cm
@@ -110,15 +108,16 @@ structure: interlok
 machine: interlock 30" E24 72F 24rpm 85%
 needles: 2256
 cylinder: AB
-dial: B'A'
+dial: BA
 
-      F1  F2
-A'    K   M
-B'    M   K
+kapak
 A     K   M
 B     M   K
-yarn  Y1
-loop  1.7
+silindir
+A     K   M
+B     M   K
+F     Y1
+L     1.7
 
 Y1 = Ne 40/1 CO
 finished: 200 gsm 180 cm
@@ -135,15 +134,16 @@ structure: double-face
 machine: rib 30" E24 72F 20rpm 85%
 needles: 2256
 cylinder: AB
-dial: A'B'
+dial: AB
 
-      F1  F2  F3  F4
-A'    T   K   M   K
-B'    M   K   T   K
+kapak
+A     T   K   M   K
+B     M   K   T   K
+silindir
 A     K   M   K   M
 B     K   M   K   M
-yarn  Y1  Y2  Y1  Y2
-loop  2.2 2.0 2.2 2.0
+F     Y1  Y2  Y1  Y2
+L     2.2 2.0 2.2 2.0
 
 Y1 = Ne 30/1 CO
 Y2 = 75/72 dtex PES

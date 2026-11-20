@@ -128,20 +128,6 @@ export class KnitspecSettingTab extends PluginSettingTab {
       () => s.display.camStyle,
       (v) => (s.display.camStyle = v as DisplayOptions["camStyle"]),
     );
-    drop(
-      "Track names",
-      "How butt positions are named. Kapak tracks always carry an apostrophe (A′ / 1′).",
-      { letters: "A B C D", numbers: "1 2 3 4" },
-      () => s.display.trackNames,
-      (v) => (s.display.trackNames = v as DisplayOptions["trackNames"]),
-    );
-    drop(
-      "Track order in the cam chart",
-      "Whether the first track (A / 1) is the top row or the bottom row, as the masters count butts.",
-      { "first-top": "First track at the top", "first-bottom": "First track at the bottom" },
-      () => s.display.trackOrder,
-      (v) => (s.display.trackOrder = v as DisplayOptions["trackOrder"]),
-    );
 
     new Setting(containerEl).setName("Calculations").setHeading();
     this.num(containerEl, "Tuck length ratio", "Yarn taken by a tuck as a share of the loop length, when the feed gives no `tuck`.", () => s.calc.tuckRatio, (v) => (s.calc.tuckRatio = v));

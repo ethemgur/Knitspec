@@ -1,5 +1,4 @@
 import { Issue } from "./model";
-import { DEFAULT_DISPLAY, DisplayOptions, trackLabel } from "./render/options";
 
 export type Lang = "en" | "tr";
 
@@ -80,12 +79,15 @@ const en = {
   // issues
   "issue.error": "Error",
   "issue.warning": "Warning",
-  "issue.noGrid": "No cam rows found. Write one row per track, e.g. `A  K T K M`, with feeders as columns.",
+  "issue.noKapakSection": "Double jersey: put the kapak rows under a `kapak` line and the silindir rows under a `silindir` line.",
+  "issue.trackTwice": "{bed} track {track} is written twice; the first row is used.",
+  "issue.setoutUnreadable": "{bed} set-out “{value}” not understood. Write track names in needle order, e.g. `1 1' 2 2'`.",
+  "issue.noGrid": "No cam rows found. Write one row per track, e.g. `1  K T K M`, with feeders as columns.",
   "issue.gridWidth": "{bed} track {track}: {got} cams but {want} feeders.",
   "issue.feedRowWidth": "`{row}` row has {got} values for {want} feeders. Give one value per feeder, or one value for all.",
   "issue.camRowMissing": "{bed} track {track} is in the set-out but has no cam row.",
   "issue.trackNotInSetout": "{bed} track {track} has cams but no needles in the set-out.",
-  "issue.setoutAssumed": "{bed} set-out not given; assumed {setout}. Write the real needle order, e.g. `cylinder: ABCD`.",
+  "issue.setoutAssumed": "{bed} set-out not given; assumed {setout}. Write the real needle order, e.g. `cylinder: 1 1' 2 2'`.",
   "issue.unknownLine": "Line {line} not understood: “{text}”.",
   "issue.machineToken": "Machine: “{value}” not understood. Example: `SJ 30\" E28 96F 25rpm`.",
   "issue.machineMissing": "Machine is missing.",
@@ -97,7 +99,7 @@ const en = {
   "issue.camsMissing": "`cams` is missing. Example: `F1: KT`.",
   "issue.camLetter": "{feeder}: “{value}” is not a cam letter. Use K, T or M.",
   "issue.camLength": "{feeder}: {got} cam letters for {want} tracks ({tracks}).",
-  "issue.camDialMissing": "{feeder}: double jersey needs kapak rows (A\u2032, B\u2032 …).",
+  "issue.camDialMissing": "{feeder}: double jersey needs kapak rows under a `kapak` line.",
   "issue.camDialOnSingle": "{feeder}: dial cams on a single-jersey machine are ignored.",
   "issue.feederKey": "“{value}” is not a feeder. Use F1, F1-F4 or F1,F3.",
   "issue.feederTwice": "{feeder} is set twice; the last one wins.",
@@ -198,12 +200,15 @@ const tr: Record<Key, string> = {
   "missing.prefix": "Gerekli: ",
   "issue.error": "Hata",
   "issue.warning": "Uyarı",
-  "issue.noGrid": "Kam satırı bulunamadı. Her ray için bir satır yazın, ör. `A  K T K M`; sütunlar besleyicidir.",
+  "issue.noKapakSection": "Çift plaka: kapak satırlarını `kapak` satırının, silindir satırlarını `silindir` satırının altına yazın.",
+  "issue.trackTwice": "{bed} {track} rayı iki kez yazılmış; ilk satır kullanıldı.",
+  "issue.setoutUnreadable": "{bed} dizilimi “{value}” anlaşılamadı. Ray adlarını iğne sırasıyla yazın, ör. `1 1' 2 2'`.",
+  "issue.noGrid": "Kam satırı bulunamadı. Her ray için bir satır yazın, ör. `1  K T K M`; sütunlar besleyicidir.",
   "issue.gridWidth": "{bed} {track} rayı: {want} besleyici için {got} kam var.",
   "issue.feedRowWidth": "`{row}` satırında {want} besleyici için {got} değer var. Her besleyiciye bir değer ya da hepsine tek değer yazın.",
   "issue.camRowMissing": "{bed} {track} rayı dizilimde var ama kam satırı yok.",
   "issue.trackNotInSetout": "{bed} {track} rayının kamı var ama dizilimde iğnesi yok.",
-  "issue.setoutAssumed": "{bed} dizilimi yazılmamış; {setout} varsayıldı. Gerçek iğne sırasını yazın, ör. `silindir: ABCD`.",
+  "issue.setoutAssumed": "{bed} dizilimi yazılmamış; {setout} varsayıldı. Gerçek iğne sırasını yazın, ör. `silindir: 1 1' 2 2'`.",
   "issue.unknownLine": "{line}. satır anlaşılamadı: “{text}”.",
   "issue.machineToken": "Makine: “{value}” anlaşılamadı. Örnek: `SJ 30\" E28 96F 25rpm`.",
   "issue.machineMissing": "`machine` eksik.",
@@ -215,7 +220,7 @@ const tr: Record<Key, string> = {
   "issue.camsMissing": "`cams` eksik. Örnek: `F1: KT`.",
   "issue.camLetter": "{feeder}: “{value}” bir kam harfi değil. K, T ya da M kullanın.",
   "issue.camLength": "{feeder}: {want} ray ({tracks}) için {got} kam harfi var.",
-  "issue.camDialMissing": "{feeder}: çift plakada kapak satırları (A\u2032, B\u2032 …) gerekli.",
+  "issue.camDialMissing": "{feeder}: çift plakada `kapak` satırının altında kapak satırları gerekli.",
   "issue.camDialOnSingle": "{feeder}: tek plakada kapak kamları yok sayıldı.",
   "issue.feederKey": "“{value}” bir besleyici değil. F1, F1-F4 ya da F1,F3 yazın.",
   "issue.feederTwice": "{feeder} iki kez tanımlı; sonuncusu geçerli.",
@@ -261,11 +266,8 @@ export function fmt(lang: Lang, n: number, digits = 1): string {
   });
 }
 
-export function issueText(lang: Lang, issue: Issue, display: DisplayOptions = DEFAULT_DISPLAY): string {
+export function issueText(lang: Lang, issue: Issue): string {
   const params: Record<string, string | number> = { ...(issue.params ?? {}) };
-  if (typeof params.track === "string") {
-    params.track = trackLabel(issue.params?.bed === "dial" ? "dial" : "cyl", params.track, display);
-  }
   if (typeof params.bed === "string") params.bed = t(lang, `bed.${params.bed}` as Key);
   if (typeof params.field === "string") params.field = t(lang, `field.${params.field}` as Key);
   for (const k of Object.keys(params)) {

@@ -103,6 +103,19 @@ export interface Fabric {
   finished: FabricState;
   /** Order quantity in kg, for machine-hours. */
   orderKg?: number;
+  /** Track names as written in the block, by bed and internal track id. */
+  labels?: { cyl: Record<string, string>; dial: Record<string, string> };
+  /** The cam grid exactly as written: rows in order, with their names. */
+  grid?: GridRow[];
+}
+
+export interface GridRow {
+  bed: Bed;
+  /** Internal track id. */
+  track: string;
+  /** Name as written: 1, 1', A … */
+  label: string;
+  cells: Stitch[];
 }
 
 export type IssueLevel = "error" | "warning";

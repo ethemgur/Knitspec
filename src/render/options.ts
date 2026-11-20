@@ -1,19 +1,20 @@
-import { Bed } from "../model";
+import { Bed, EMPTY, Fabric } from "../model";
 
-/** How the cam chart and messages show cams and tracks. */
+/** How the cam chart shows cams. */
 export interface DisplayOptions {
   /** K/T/M letters (factory sheets) or textbook cam symbols ∧ ⏜ —. */
   camStyle: "letters" | "symbols";
-  /** Track names A B C D or butt numbers 1 2 3 4. */
-  trackNames: "letters" | "numbers";
-  /** Cam chart: first track (A / 1) in the top row, or in the bottom row. */
-  trackOrder: "first-top" | "first-bottom";
 }
 
-export const DEFAULT_DISPLAY: DisplayOptions = { camStyle: "letters", trackNames: "letters", trackOrder: "first-top" };
+export const DEFAULT_DISPLAY: DisplayOptions = { camStyle: "letters" };
 
-/** Track label as shown: A or 1; dial (kapak) tracks carry an apostrophe, A′ / 1′. */
-export function trackLabel(bed: Bed | undefined, track: string, o: DisplayOptions = DEFAULT_DISPLAY): string {
-  const base = o.trackNames === "numbers" && /^[A-Z]$/.test(track) ? String(track.charCodeAt(0) - 64) : track;
-  return bed === "dial" ? `${base}′` : base;
+/** A track's name as written in the block (1, 1', 2 …), from its internal id. */
+export function trackLabel(fabric: Fabric, bed: Bed, track: string): string {
+  return fabric.labels?.[bed]?.[track] ?? track;
+}
+
+/** A set-out as written: "AB", or "1 1' 2 2'" when names are longer than one character. */
+export function setoutText(fabric: Fabric, bed: Bed, set: string[]): string {
+  const names = set.map((t) => (t === EMPTY ? "-" : trackLabel(fabric, bed, t)));
+  return names.join(names.some((n) => n.length > 1) ? " " : "");
 }

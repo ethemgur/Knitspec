@@ -1,8 +1,7 @@
 import { Figures } from "../calc";
 import { Fabric, Feed, isDouble, Issue } from "../model";
 import { fmt, I18nKey, issueText, Lang, t } from "../i18n";
-import { DEFAULT_DISPLAY, DisplayOptions, trackLabel } from "./options";
-import { EMPTY } from "../model";
+import { setoutText } from "./options";
 
 export interface SpecRow {
   label: string;
@@ -67,9 +66,8 @@ export function buildSpec(
   figures: Figures,
   issues: Issue[],
   lang: Lang,
-  display: DisplayOptions = DEFAULT_DISPLAY,
 ): SpecCard {
-  const shown = (bed: "cyl" | "dial", set: string[]) => set.map((l) => (l === EMPTY ? l : trackLabel(bed, l, display))).join(display.trackNames === "numbers" ? " " : "");
+  const shown = (bed: "cyl" | "dial", set: string[]) => setoutText(fabric, bed, set);
   const dash = t(lang, "label.unknownFigure");
   const sections: SpecSection[] = [];
 
@@ -175,6 +173,6 @@ export function buildSpec(
     missing: figures.missing.map((k) => t(lang, `missing.${k}` as I18nKey)),
     issues: [...issues]
       .sort((a, b) => (a.level === b.level ? 0 : a.level === "error" ? -1 : 1))
-      .map((i) => ({ level: i.level, text: issueText(lang, i, display) })),
+      .map((i) => ({ level: i.level, text: issueText(lang, i) })),
   };
 }
