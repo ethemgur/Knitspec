@@ -21,6 +21,8 @@ describe("set-out lines", () => {
     expect(parseSetoutLine("AA--")).toEqual(["A", "A", "-", "-"]);
     expect(parseSetoutLine("A.B_")).toEqual(["A", "-", "B", "-"]);
     expect(parseSetoutLine("A1")).toBeUndefined();
+    expect(parseSetoutLine("B'A'")).toEqual(["B", "A"]);
+    expect(parseSetoutLine("B′ A′")).toEqual(["B", "A"]);
   });
 });
 

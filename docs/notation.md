@@ -79,7 +79,9 @@ setout:
 - Spaces are ignored: `A B A B` is the same as `ABAB`.
 - On a single-jersey machine, `setout: AB` is short for `setout: { cylinder: AB }`.
 
-In the diagram, dial needle *i* is drawn between cylinder needles *i* and *i + 1*.
+Dial (kapak) tracks are shown with an apostrophe, A′ B′, to tell them apart from cylinder tracks. In the block you can write `dial: BA` or `dial: B'A'`; both mean the same. In rib gating, dial needle *i* is drawn between cylinder needles *i* and *i + 1*; in interlock gating, it is drawn directly opposite cylinder needle *i*.
+
+The cam chart is laid out like a set-up sheet (çelik dizilimi): one row per track, with kapak rows above silindir rows, and one column per feeder, with the yarn and loop length under each column.
 
 ## Cams (kam dizilimi)
 

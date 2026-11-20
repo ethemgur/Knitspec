@@ -118,7 +118,7 @@ export function parseSetoutLine(v: unknown): string[] | undefined {
   if (!s) return undefined;
   const out: string[] = [];
   for (const ch of s.toUpperCase()) {
-    if (/\s/.test(ch)) continue;
+    if (/\s/.test(ch) || ch === "'" || ch === "′" || ch === "’") continue; // dial tracks may be written A′
     if (ch === "-" || ch === "." || ch === "_") out.push(EMPTY);
     else if (/[A-Z]/.test(ch)) out.push(ch);
     else return undefined;

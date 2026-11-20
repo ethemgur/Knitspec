@@ -27,7 +27,7 @@ export function toCsv(fabric: Fabric, figures: Figures, lang: Lang, sep: CsvSepa
   const double = isDouble(fabric);
   row(
     t(lang, "label.feeder"),
-    ...(double ? fabric.tracks.dial.map((x) => `${t(lang, "bed.dial")} ${x}`) : []),
+    ...(double ? fabric.tracks.dial.map((x) => `${t(lang, "bed.dial")} ${x}′`) : []),
     ...fabric.tracks.cyl.map((x) => `${t(lang, "bed.cyl")} ${x}`),
     "yarn",
     "plate",

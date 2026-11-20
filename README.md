@@ -2,7 +2,7 @@
 
 An Obsidian plugin that turns a `knit` code block into an industrial fabric spec for circular weft knitting on single- and double-jersey machines. Each block renders as a card with three tabs:
 
-- **Cam chart** (kam tablosu): the needle set-out (iğne dizilimi) on top, with one box per needle, the first repeat outlined and the repeat count around the bed. Below it, a colour-coded feeder × track grid with the feed for each row. Everything needed to set up the machine is in one picture.
+- **Cam chart** (kam tablosu): the needle set-out (iğne dizilimi) on top, with one box per needle, the first repeat outlined and the repeat count around the bed. Below it, a colour-coded grid laid out like a set-up sheet: one row per track (kapak tracks A′ B′ above silindir tracks), one column per feeder, with the yarn and loop length under each column. Everything needed to set up the machine is in one picture.
 - **Knitting diagram** (örgü diyagramı): the yarn path per feeder, with knit, tuck and miss shown on cylinder and dial needles.
 - **Spec card** (teknik föy): machine, yarns, composition, kg/h, GSM, width, tightness, machine-hours and validation warnings. Every figure is shown with its inputs.
 

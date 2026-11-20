@@ -38,7 +38,8 @@ describe("SVG renderers", () => {
     const { fabric } = run(fixture("sp-1024-single-pique.yaml"));
     const svg = renderCamChart(fabric!, "en");
     for (const f of ["F1", "F2", "F3", "F4"]) expect(svg).toContain(`>${f}<`);
-    expect(svg).toContain("Y1+Y2 · 2.9 mm");
+    expect(svg).toContain(">Y1+Y2<");
+    expect(svg).toContain(">2.9<");
     expect(renderCamChart(fabric!, "tr")).toContain("Askı");
   });
 
@@ -47,7 +48,7 @@ describe("SVG renderers", () => {
     const svg = renderCamChart(fabric!, "en", figures!.needles!.value);
     expect(svg).toContain("Needle set-out");
     expect(svg).toContain("AA-- × 423 repeats");
-    expect(svg).toContain("-AA- × 423 repeats");
+    expect(svg).toContain("-A′A′- × 423 repeats");
     expect(renderCamChart(fabric!, "tr", 1692)).toContain("× 423 rapor");
   });
 
@@ -113,6 +114,18 @@ describe("export", () => {
     const md = "# Note\n\n```knit\narticle: A\n```\n\ntext\n";
     expect(findKnitBlock(md)).toBe("article: A");
     expect(findKnitBlock("```yaml\na: 1\n```")).toBeUndefined();
+  });
+});
+
+describe("cam chart layout", () => {
+  it("rows are tracks (dial with apostrophe, above cylinder), columns are feeders", () => {
+    const { fabric } = run(fixture("il-3300-interlock.yaml"));
+    const svg = renderCamChart(fabric!, "tr");
+    const y = (label: string) => Number(svg.match(new RegExp(`y="([\\d.]+)"[^>]*>${label}<`))![1]);
+    expect(y("Kapak")).toBeLessThan(y("Silindir"));
+    expect(svg).toContain(">A′<");
+    expect(svg).toContain(">B′<");
+    expect(svg).toContain(">İplik<");
   });
 });
 
